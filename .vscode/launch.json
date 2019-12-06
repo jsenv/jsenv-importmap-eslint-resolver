@@ -8,7 +8,7 @@
       "protocol": "inspector",
       "program": "${file}",
       "autoAttachChildProcesses": true,
-      "sourceMaps": false,
+      "sourceMaps": true,
       "smartStep": true,
       // https://github.com/Microsoft/vscode-chrome-debug-core/commit/eb552d621f1f6fbebcfca5d2390020dc7d8877e0#diff-b4f13aa3c326d081dea7875f9c0fe84aR31
       "skipFiles": [
@@ -25,7 +25,7 @@
       "program": "${workspaceFolder}/script/run-node/run-node.js",
       "args": ["${relativeFile}"],
       "autoAttachChildProcesses": true,
-      "sourceMaps": false,
+      "sourceMaps": true,
       // "smartStep": true,
       "skipFiles": [
         // force-multiline

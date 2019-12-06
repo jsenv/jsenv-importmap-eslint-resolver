@@ -91,12 +91,26 @@ ${projectDirectoryUrl}`)
   const importer = filePathToUrl(file)
 
   try {
-    const importUrl = resolveImport({
-      specifier,
-      importer,
-      importMap,
-      defaultExtension,
-    })
+    let importUrl
+    try {
+      importUrl = resolveImport({
+        specifier,
+        importer,
+        importMap,
+        defaultExtension,
+      })
+    } catch (e) {
+      if (e.message.includes("bare specifier")) {
+        // this is an expected error and the file cannot be found
+        logger.debug("unmapped bare specifier")
+        return {
+          found: false,
+          path: null,
+        }
+      }
+      // this is an unexpected error
+      throw e
+    }
 
     if (importUrl.startsWith("file://")) {
       const importFilePath = urlToFilePath(importUrl)

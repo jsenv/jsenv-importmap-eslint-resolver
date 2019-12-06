@@ -36,7 +36,7 @@ const abstractFileInsideFolder = urlToFilePath(
   })
   const expected = {
     found: true,
-    path: urlToFilePath(resolveUrl(`./root/root-file.js`, projectDirectoryUrl)),
+    path: urlToFilePath(resolveUrl(`../root-file.js`, projectDirectoryUrl)),
   }
   assert({ actual, expected })
 }
@@ -48,7 +48,7 @@ const abstractFileInsideFolder = urlToFilePath(
   })
   const expected = {
     found: false,
-    path: urlToFilePath(resolveUrl(`./root/root-file.js`, projectDirectoryUrl)),
+    path: urlToFilePath(resolveUrl(`../root-file.js`, projectDirectoryUrl)),
   }
   assert({ actual, expected })
 }
