@@ -5,7 +5,7 @@
 [![github ci](https://github.com/jsenv/jsenv-importmap-eslint-resolver/workflows/ci/badge.svg)](https://github.com/jsenv/jsenv-importmap-eslint-resolver/actions?workflow=ci)
 [![codecov coverage](https://codecov.io/gh/jsenv/jsenv-importmap-eslint-resolver/branch/master/graph/badge.svg)](https://codecov.io/gh/jsenv/jsenv-importmap-eslint-resolver)
 
-importMap resolution for eslint.
+importmap resolution for eslint.
 
 ## Table of contents
 
@@ -19,7 +19,7 @@ importMap resolution for eslint.
 
 `@jsenv/importmap-eslint-resolver` enables importMap resolution for eslint.
 
-— see [importMap spec on github](https://github.com/WICG/import-maps)<br />
+— see [importmap spec on github](https://github.com/WICG/import-maps)<br />
 
 ## Installation
 
