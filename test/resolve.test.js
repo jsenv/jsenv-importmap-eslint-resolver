@@ -1,5 +1,11 @@
 import { assert } from "@jsenv/assert"
-import { ensureEmptyDirectory, resolveUrl, urlToFileSystemPath, writeFile } from "@jsenv/util"
+import {
+  ensureEmptyDirectory,
+  resolveUrl,
+  ensureWindowsDriveLetter,
+  urlToFileSystemPath,
+  writeFile,
+} from "@jsenv/util"
 import * as resolver from "../index.js"
 // const resolver = import.meta.require("../../dist/commonjs/main.js")
 
@@ -9,7 +15,10 @@ await ensureEmptyDirectory(tempDirectoryUrl)
 // import starting with /
 {
   const importerFileUrl = resolveUrl("dir/foo.js", tempDirectoryUrl)
-  const resolvedFileUrl = resolveUrl("/file.js", tempDirectoryUrl)
+  const resolvedFileUrl = ensureWindowsDriveLetter(
+    resolveUrl("/file.js", tempDirectoryUrl),
+    tempDirectoryUrl,
+  )
 
   const actual = resolver.resolve("/file.js", urlToFileSystemPath(importerFileUrl), {
     projectDirectoryUrl: tempDirectoryUrl,
