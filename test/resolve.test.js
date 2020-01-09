@@ -216,6 +216,7 @@ await ensureEmptyDirectory(tempDirectoryUrl)
   await writeFile(resolvedFileUrl)
 
   const actual = resolver.resolve("../file", urlToFileSystemPath(importerFileUrl), {
+    logLevel: "error",
     projectDirectoryUrl,
     ignoreOutside: true,
   })
