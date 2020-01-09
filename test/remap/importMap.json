@@ -1,5 +1,0 @@
-{
-  "imports": {
-    "@babel/plugin-proposal-object-rest-spread": "./node_modules/@babel/plugin-proposal-object-rest-spread/lib/index.js"
-  }
-}
