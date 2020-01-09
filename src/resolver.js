@@ -8,12 +8,18 @@ import { normalizeImportMap, resolveImport } from "@jsenv/import-map"
 import {
   assertAndNormalizeDirectoryUrl,
   resolveUrl,
+  ensureWindowsDriveLetter,
   urlIsInsideOf,
   urlToFileSystemPath,
   fileSystemPathToUrl,
 } from "@jsenv/util"
 import { isNativeNodeModuleBareSpecifier } from "./internal/isNativeNodeModuleBareSpecifier.js"
 import { isNativeBrowserModuleBareSpecifier } from "./internal/isNativeBrowserModuleBareSpecifier.js"
+
+const applyUrlResolution = (specifier, importer) => {
+  const url = resolveUrl(specifier, importer)
+  return ensureWindowsDriveLetter(url, importer)
+}
 
 export const interfaceVersion = 2
 
@@ -36,7 +42,7 @@ export const resolve = (
   if (typeof importMapFileRelativeUrl === "undefined") {
     importMap = undefined
   } else if (typeof importMapFileRelativeUrl === "string") {
-    const importMapFileUrl = resolveUrl(importMapFileRelativeUrl, projectDirectoryUrl)
+    const importMapFileUrl = applyUrlResolution(importMapFileRelativeUrl, projectDirectoryUrl)
 
     if (ignoreOutside && !urlIsInsideOf(importMapFileUrl, projectDirectoryUrl)) {
       logger.warn(`import map file is outside project.
@@ -116,6 +122,7 @@ ${urlToFileSystemPath(projectDirectoryUrl)}`)
       // this is an unexpected error
       throw e
     }
+    importUrl = ensureWindowsDriveLetter(importUrl, importer)
 
     if (importUrl.startsWith("file://")) {
       const importFilePath = urlToFileSystemPath(importUrl)
