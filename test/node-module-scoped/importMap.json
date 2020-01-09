@@ -1,7 +1,0 @@
-{
-  "scopes": {
-    "./node_modules/use-scoped-foo/": {
-      "foo": "./node_modules/use-scoped-foo/node_modules/foo/index.js"
-    }
-  }
-}

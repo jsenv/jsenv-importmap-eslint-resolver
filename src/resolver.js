@@ -4,11 +4,22 @@
 
 import { readFileSync, statSync } from "fs"
 import { createLogger } from "@jsenv/logger"
-import { normalizeImportMap, resolveImport, resolveUrl } from "@jsenv/import-map"
-import { urlToFilePath, filePathToUrl } from "./internal/urlUtils.js"
-import { normalizeDirectoryUrl } from "./internal/normalizeDirectoryUrl.js"
+import { normalizeImportMap, resolveImport } from "@jsenv/import-map"
+import {
+  assertAndNormalizeDirectoryUrl,
+  resolveUrl,
+  ensureWindowsDriveLetter,
+  urlIsInsideOf,
+  urlToFileSystemPath,
+  fileSystemPathToUrl,
+} from "@jsenv/util"
 import { isNativeNodeModuleBareSpecifier } from "./internal/isNativeNodeModuleBareSpecifier.js"
 import { isNativeBrowserModuleBareSpecifier } from "./internal/isNativeBrowserModuleBareSpecifier.js"
+
+const applyUrlResolution = (specifier, importer) => {
+  const url = resolveUrl(specifier, importer)
+  return ensureWindowsDriveLetter(url, importer)
+}
 
 export const interfaceVersion = 2
 
@@ -19,32 +30,30 @@ export const resolve = (
     logLevel,
     projectDirectoryUrl,
     importMapFileRelativeUrl = "./importMap.json",
-    insideProjectAssertion = false,
+    ignoreOutside = false,
     defaultExtension = false,
     node = false,
     browser = false,
   },
 ) => {
-  const logger = createLogger({ logLevel })
-
-  projectDirectoryUrl = normalizeDirectoryUrl(projectDirectoryUrl)
+  projectDirectoryUrl = assertAndNormalizeDirectoryUrl(projectDirectoryUrl)
 
   let importMap
   if (typeof importMapFileRelativeUrl === "undefined") {
     importMap = undefined
   } else if (typeof importMapFileRelativeUrl === "string") {
-    const importMapFileUrl = resolveUrl(importMapFileRelativeUrl, projectDirectoryUrl)
+    const importMapFileUrl = applyUrlResolution(importMapFileRelativeUrl, projectDirectoryUrl)
 
-    if (insideProjectAssertion && !urlIsInsideProject(importMapFileUrl, projectDirectoryUrl)) {
-      throw new Error(`import map file must be inside project.
---- import map file url ---
-${importMapFileUrl}
---- project directory url ---
-${projectDirectoryUrl}`)
+    if (ignoreOutside && !urlIsInsideOf(importMapFileUrl, projectDirectoryUrl)) {
+      logger.warn(`import map file is outside project.
+--- import map file ---
+${urlToFileSystemPath(importMapFileUrl)}
+--- project directory ---
+${urlToFileSystemPath(projectDirectoryUrl)}`)
     }
 
     try {
-      const importMapFilePath = urlToFilePath(importMapFileUrl)
+      const importMapFilePath = urlToFileSystemPath(importMapFileUrl)
       const importMapFileBuffer = readFileSync(importMapFilePath)
       const importMapFileString = String(importMapFileBuffer)
       importMap = JSON.parse(importMapFileString)
@@ -62,14 +71,16 @@ ${projectDirectoryUrl}`)
     )
   }
 
+  const logger = createLogger({ logLevel })
+
   logger.debug(`
 resolve import for project.
 --- specifier ---
 ${source}
 --- importer ---
 ${file}
---- project directory url ---
-${projectDirectoryUrl}`)
+--- project directory path ---
+${urlToFileSystemPath(projectDirectoryUrl)}`)
 
   if (node && isNativeNodeModuleBareSpecifier(source)) {
     logger.debug(`-> native node module`)
@@ -88,7 +99,7 @@ ${projectDirectoryUrl}`)
   }
 
   const specifier = source
-  const importer = filePathToUrl(file)
+  const importer = String(fileSystemPathToUrl(file))
 
   try {
     let importUrl
@@ -111,11 +122,18 @@ ${projectDirectoryUrl}`)
       // this is an unexpected error
       throw e
     }
+    importUrl = ensureWindowsDriveLetter(importUrl, importer)
 
     if (importUrl.startsWith("file://")) {
-      const importFilePath = urlToFilePath(importUrl)
+      const importFilePath = urlToFileSystemPath(importUrl)
 
-      if (insideProjectAssertion && !urlIsInsideProject(importUrl, projectDirectoryUrl)) {
+      if (ignoreOutside && !urlIsInsideOf(importUrl, projectDirectoryUrl)) {
+        logger.warn(`ignoring import outside project
+--- import file ---
+${importFilePath}
+--- project directory ---
+${urlToFileSystemPath(projectDirectoryUrl)}
+`)
         return {
           found: false,
           path: importFilePath,
@@ -162,14 +180,10 @@ ${projectDirectoryUrl}`)
   }
 }
 
-const urlIsInsideProject = (url, projectDirectoryUrl) => {
-  return url.startsWith(projectDirectoryUrl)
-}
-
 const pathLeadsToFile = (path) => {
   try {
-    const stat = statSync(path)
-    return stat.isFile()
+    const stats = statSync(path)
+    return stats.isFile()
   } catch (e) {
     if (e && e.code === "ENOENT") {
       return false
