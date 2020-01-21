@@ -3,8 +3,10 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var fs = require('fs');
-var path = require('path');
 var url = require('url');
+require('crypto');
+require('path');
+var util = require('util');
 
 const LOG_LEVEL_OFF = "off";
 const LOG_LEVEL_DEBUG = "debug";
@@ -60,14 +62,7 @@ const createLogger = ({
     };
   }
 
-  throw new Error(createUnexpectedLogLevelMessage({
-    logLevel
-  }));
-};
-
-const createUnexpectedLogLevelMessage = ({
-  logLevel
-}) => `unexpected logLevel.
+  throw new Error(`unexpected logLevel.
 --- logLevel ---
 ${logLevel}
 --- allowed log levels ---
@@ -75,9 +70,8 @@ ${LOG_LEVEL_OFF}
 ${LOG_LEVEL_ERROR}
 ${LOG_LEVEL_WARN}
 ${LOG_LEVEL_INFO}
-${LOG_LEVEL_DEBUG}
-`;
-
+${LOG_LEVEL_DEBUG}`);
+};
 const debug = console.debug;
 
 const debugDisabled = () => {};
@@ -640,111 +634,170 @@ const applyDefaultExtension = ({
   return url;
 };
 
-const {
-  platform
-} = process;
-const isWindows = platform === "win32";
-const percentRegEx = /%/g;
-const backslashRegEx = /\\/g;
-const newlineRegEx = /\n/g;
-const carriageReturnRegEx = /\r/g;
-const tabRegEx = /\t/g;
-
-const pathToFileURLPolyfill = filepath => {
-  let resolved = path.resolve(filepath); // path.resolve strips trailing slashes so we must add them back
-
-  const filePathLast = filepath.charCodeAt(filepath.length - 1);
-  if ((filePathLast === "/" || filePathLast === "\\") && resolved[resolved.length - 1] !== path.sep) resolved += "/";
-  const outURL = new URL("file://");
-  if (resolved.includes("%")) resolved = resolved.replace(percentRegEx, "%25"); // In posix, "/" is a valid character in paths
-
-  if (!isWindows && resolved.includes("\\")) resolved = resolved.replace(backslashRegEx, "%5C");
-  if (resolved.includes("\n")) resolved = resolved.replace(newlineRegEx, "%0A");
-  if (resolved.includes("\r")) resolved = resolved.replace(carriageReturnRegEx, "%0D");
-  if (resolved.includes("\t")) resolved = resolved.replace(tabRegEx, "%09");
-  outURL.pathname = resolved;
-  return outURL;
+const ensureUrlTrailingSlash = url => {
+  return url.endsWith("/") ? url : `${url}/`;
 };
 
-const pathToFileURL = url.pathToFileURL || pathToFileURLPolyfill;
+const isFileSystemPath = value => {
+  if (typeof value !== "string") {
+    throw new TypeError(`isFileSystemPath first arg must be a string, got ${value}`);
+  }
 
-const {
-  platform: platform$1
-} = process;
-const isWindows$1 = platform$1 === "win32";
-const CHAR_LOWERCASE_A = 97;
-const CHAR_LOWERCASE_Z = 122; // https://github.com/nodejs/node/blob/f185990738ca6eb781328bfec65c416b5415d1fc/lib/internal/url.js#L1334
-
-const fileURLToPathPolyfill = path => {
-  if (typeof path === "string") path = new URL(path);else if (path === null || typeof path !== "object") throw new Error(`path must be a string or an url`);
-  if (path.protocol !== "file:") throw new Error("unexpected url sheme, must be file");
-  return isWindows$1 ? getPathFromURLWin32(path) : getPathFromURLPosix(path);
+  if (value[0] === "/") return true;
+  return startsWithWindowsDriveLetter(value);
 };
 
-const forwardSlashRegEx = /\//g;
+const startsWithWindowsDriveLetter = string => {
+  const firstChar = string[0];
+  if (!/[a-zA-Z]/.test(firstChar)) return false;
+  const secondChar = string[1];
+  if (secondChar !== ":") return false;
+  return true;
+};
 
-function getPathFromURLWin32(url) {
-  const hostname = url.hostname;
-  var pathname = url.pathname;
+const fileSystemPathToUrl = value => {
+  if (!isFileSystemPath(value)) {
+    throw new Error(`received an invalid value for fileSystemPath: ${value}`);
+  }
 
-  for (var n = 0; n < pathname.length; n++) {
-    if (pathname[n] === "%") {
-      var third = pathname.codePointAt(n + 2) | 0x20;
+  return String(url.pathToFileURL(value));
+};
 
-      if (pathname[n + 1] === "2" && third === 102 || // 2f 2F /
-      pathname[n + 1] === "5" && third === 99) {
-        // 5c 5C \
-        throw new Error("must not include encoded \\ or / characters");
+const assertAndNormalizeDirectoryUrl = value => {
+  let urlString;
+
+  if (value instanceof URL) {
+    urlString = value.href;
+  } else if (typeof value === "string") {
+    if (isFileSystemPath(value)) {
+      urlString = fileSystemPathToUrl(value);
+    } else {
+      try {
+        urlString = String(new URL(value));
+      } catch (e) {
+        throw new TypeError(`directoryUrl must be a valid url, received ${value}`);
       }
     }
+  } else {
+    throw new TypeError(`directoryUrl must be a string or an url, received ${value}`);
   }
 
-  pathname = pathname.replace(forwardSlashRegEx, "\\");
-  pathname = decodeURIComponent(pathname);
-
-  if (hostname !== "") {
-    // If hostname is set, then we have a UNC path
-    // Pass the hostname through domainToUnicode just in case
-    // it is an IDN using punycode encoding. We do not need to worry
-    // about percent encoding because the URL parser will have
-    // already taken care of that for us. Note that this only
-    // causes IDNs with an appropriate `xn--` prefix to be decoded.
-    return `\\\\${hostname}${pathname}`;
-  } // Otherwise, it's a local path that requires a drive letter
-
-
-  var letter = pathname.codePointAt(1) | 0x20;
-  var sep = pathname[2];
-
-  if (letter < CHAR_LOWERCASE_A || letter > CHAR_LOWERCASE_Z || // a..z A..Z
-  sep !== ":") {
-    throw new Error("must be absolute");
+  if (!urlString.startsWith("file://")) {
+    throw new Error(`directoryUrl must starts with file://, received ${value}`);
   }
 
-  return pathname.slice(1);
-}
+  return ensureUrlTrailingSlash(urlString);
+};
 
-function getPathFromURLPosix(url) {
-  if (url.hostname !== "") {
-    throw new Error(`invalid file url host for ${platform$1} platform`);
+const urlToFileSystemPath = fileUrl => {
+  if (fileUrl[fileUrl.length - 1] === "/") {
+    // remove trailing / so that nodejs path becomes predictable otherwise it logs
+    // the trailing slash on linux but does not on windows
+    fileUrl = fileUrl.slice(0, -1);
   }
 
-  const pathname = url.pathname;
+  const fileSystemPath = url.fileURLToPath(fileUrl);
+  return fileSystemPath;
+};
 
-  for (var n = 0; n < pathname.length; n++) {
-    if (pathname[n] === "%") {
-      var third = pathname.codePointAt(n + 2) | 0x20;
+const isWindows = process.platform === "win32";
 
-      if (pathname[n + 1] === "2" && third === 102) {
-        throw new Error("must not include encoded / characters");
-      }
-    }
+const resolveUrl$1 = (specifier, baseUrl) => {
+  if (typeof baseUrl === "undefined") {
+    throw new TypeError(`baseUrl missing to resolve ${specifier}`);
   }
 
-  return decodeURIComponent(pathname);
-}
+  return String(new URL(specifier, baseUrl));
+};
 
-const fileURLToPath = url.fileURLToPath || fileURLToPathPolyfill;
+const isWindows$1 = process.platform === "win32";
+const baseUrlFallback = fileSystemPathToUrl(process.cwd());
+/**
+ * Some url might be resolved or remapped to url without the windows drive letter.
+ * For instance
+ * new URL('/foo.js', 'file:///C:/dir/file.js')
+ * resolves to
+ * 'file:///foo.js'
+ *
+ * But on windows it becomes a problem because we need the drive letter otherwise
+ * url cannot be converted to a filesystem path.
+ *
+ * ensureWindowsDriveLetter ensure a resolved url still contains the drive letter.
+ */
+
+const ensureWindowsDriveLetter = (url, baseUrl) => {
+  try {
+    url = String(new URL(url));
+  } catch (e) {
+    throw new Error(`absolute url expected but got ${url}`);
+  }
+
+  if (!isWindows$1) {
+    return url;
+  }
+
+  try {
+    baseUrl = String(new URL(baseUrl));
+  } catch (e) {
+    throw new Error(`absolute baseUrl expected but got ${baseUrl} to ensure windows drive letter on ${url}`);
+  }
+
+  if (!url.startsWith("file://")) {
+    return url;
+  }
+
+  const afterProtocol = url.slice("file://".length); // we still have the windows drive letter
+
+  if (extractDriveLetter(afterProtocol)) {
+    return url;
+  } // drive letter was lost, restore it
+
+
+  const baseUrlOrFallback = baseUrl.startsWith("file://") ? baseUrl : baseUrlFallback;
+  const driveLetter = extractDriveLetter(baseUrlOrFallback.slice("file://".length));
+
+  if (!driveLetter) {
+    throw new Error(`drive letter expected on baseUrl but got ${baseUrl} to ensure windows drive letter on ${url}`);
+  }
+
+  return `file:///${driveLetter}:${afterProtocol}`;
+};
+
+const extractDriveLetter = ressource => {
+  // we still have the windows drive letter
+  if (/[a-zA-Z]/.test(ressource[1]) && ressource[2] === ":") {
+    return ressource[1];
+  }
+
+  return null;
+};
+
+const isWindows$2 = process.platform === "win32";
+
+const urlIsInsideOf = (urlValue, otherUrlValue) => {
+  const url = new URL(urlValue);
+  const otherUrl = new URL(otherUrlValue);
+
+  if (url.origin !== otherUrl.origin) {
+    return false;
+  }
+
+  const urlPathname = url.pathname;
+  const otherUrlPathname = otherUrl.pathname;
+
+  if (urlPathname === otherUrlPathname) {
+    return false;
+  }
+
+  return urlPathname.startsWith(otherUrlPathname);
+};
+
+const readFilePromisified = util.promisify(fs.readFile);
+
+const isWindows$3 = process.platform === "win32";
+
+/* eslint-disable import/max-dependencies */
+const isLinux = process.platform === "linux"; // linux does not support recursive option
 
 const NATIVE_NODE_MODULE_SPECIFIER_ARRAY = ["assert", "async_hooks", "buffer_ieee754", "buffer", "child_process", "cluster", "console", "constants", "crypto", "_debugger", "dgram", "dns", "domain", "events", "freelist", "fs", "fs/promises", "_http_agent", "_http_client", "_http_common", "_http_incoming", "_http_outgoing", "_http_server", "http", "http2", "https", "inspector", "_linklist", "module", "net", "node-inspect/lib/_inspect", "node-inspect/lib/internal/inspect_client", "node-inspect/lib/internal/inspect_repl", "os", "path", "perf_hooks", "process", "punycode", "querystring", "readline", "repl", "smalloc", "_stream_duplex", "_stream_transform", "_stream_wrap", "_stream_passthrough", "_stream_readable", "_stream_writable", "stream", "string_decoder", "sys", "timers", "_tls_common", "_tls_legacy", "_tls_wrap", "tls", "trace_events", "tty", "url", "util", "v8/tools/arguments", "v8/tools/codemap", "v8/tools/consarray", "v8/tools/csvparser", "v8/tools/logreader", "v8/tools/profile_view", "v8/tools/splaytree", "v8", "vm", "worker_threads", "zlib", // global is special
 "global"];
@@ -753,38 +806,40 @@ const isNativeNodeModuleBareSpecifier = specifier => NATIVE_NODE_MODULE_SPECIFIE
 const isNativeBrowserModuleBareSpecifier = () => false;
 
 // https://github.com/benmosher/eslint-plugin-import/blob/master/resolvers/node/index.js
+
+const applyUrlResolution = (specifier, importer) => {
+  const url = resolveUrl$1(specifier, importer);
+  return ensureWindowsDriveLetter(url, importer);
+};
+
 const interfaceVersion = 2;
 const resolve = (source, file, {
   logLevel,
-  projectDirectoryPath,
-  importMapFileRelativePath = "./importMap.json",
-  insideProjectAssertion = false,
+  projectDirectoryUrl,
+  importMapFileRelativeUrl = "./importMap.json",
+  ignoreOutside = false,
   defaultExtension = false,
   node = false,
   browser = false
 }) => {
-  if (typeof projectDirectoryPath !== "string") {
-    throw new TypeError(`projectDirectoryPath must be a string, got ${projectDirectoryPath}`);
-  }
-
-  const projectDirectoryUrl = pathToDirectoryUrl(projectDirectoryPath);
+  projectDirectoryUrl = assertAndNormalizeDirectoryUrl(projectDirectoryUrl);
   let importMap;
 
-  if (typeof importMapFileRelativePath === "undefined") {
+  if (typeof importMapFileRelativeUrl === "undefined") {
     importMap = undefined;
-  } else if (typeof importMapFileRelativePath === "string") {
-    const importMapFileUrl = String(new URL(importMapFileRelativePath, projectDirectoryUrl));
+  } else if (typeof importMapFileRelativeUrl === "string") {
+    const importMapFileUrl = applyUrlResolution(importMapFileRelativeUrl, projectDirectoryUrl);
 
-    if (insideProjectAssertion && !urlIsInsideProject(importMapFileUrl, projectDirectoryUrl)) {
-      throw new Error(`import map file must be inside project.
---- import map file url ---
-${importMapFileUrl}
---- project directory path ---
-${projectDirectoryPath}`);
+    if (ignoreOutside && !urlIsInsideOf(importMapFileUrl, projectDirectoryUrl)) {
+      logger.warn(`import map file is outside project.
+--- import map file ---
+${urlToFileSystemPath(importMapFileUrl)}
+--- project directory ---
+${urlToFileSystemPath(projectDirectoryUrl)}`);
     }
 
     try {
-      const importMapFilePath = fileURLToPath(importMapFileUrl);
+      const importMapFilePath = urlToFileSystemPath(importMapFileUrl);
       const importMapFileBuffer = fs.readFileSync(importMapFilePath);
       const importMapFileString = String(importMapFileBuffer);
       importMap = JSON.parse(importMapFileString);
@@ -797,7 +852,7 @@ ${projectDirectoryPath}`);
       }
     }
   } else {
-    throw new TypeError(`importMapFileRelativePath must be a string, got ${importMapFileRelativePath}`);
+    throw new TypeError(`importMapFileRelativeUrl must be a string, got ${importMapFileRelativeUrl}`);
   }
 
   const logger = createLogger({
@@ -810,7 +865,7 @@ ${source}
 --- importer ---
 ${file}
 --- project directory path ---
-${projectDirectoryPath}`);
+${urlToFileSystemPath(projectDirectoryUrl)}`);
 
   if (node && isNativeNodeModuleBareSpecifier(source)) {
     logger.debug(`-> native node module`);
@@ -829,20 +884,44 @@ ${projectDirectoryPath}`);
   }
 
   const specifier = source;
-  const importer = String(pathToFileURL(file));
+  const importer = String(fileSystemPathToUrl(file));
 
   try {
-    const importUrl = resolveImport({
-      specifier,
-      importer,
-      importMap,
-      defaultExtension
-    });
+    let importUrl;
+
+    try {
+      importUrl = resolveImport({
+        specifier,
+        importer,
+        importMap,
+        defaultExtension
+      });
+    } catch (e) {
+      if (e.message.includes("bare specifier")) {
+        // this is an expected error and the file cannot be found
+        logger.debug("unmapped bare specifier");
+        return {
+          found: false,
+          path: null
+        };
+      } // this is an unexpected error
+
+
+      throw e;
+    }
+
+    importUrl = ensureWindowsDriveLetter(importUrl, importer);
 
     if (importUrl.startsWith("file://")) {
-      const importFilePath = fileURLToPath(importUrl);
+      const importFilePath = urlToFileSystemPath(importUrl);
 
-      if (insideProjectAssertion && !urlIsInsideProject(importUrl, projectDirectoryUrl)) {
+      if (ignoreOutside && !urlIsInsideOf(importUrl, projectDirectoryUrl)) {
+        logger.warn(`ignoring import outside project
+--- import file ---
+${importFilePath}
+--- project directory ---
+${urlToFileSystemPath(projectDirectoryUrl)}
+`);
         return {
           found: false,
           path: importFilePath
@@ -888,24 +967,10 @@ ${projectDirectoryPath}`);
   }
 };
 
-const pathToDirectoryUrl = (specifier, baseUrl) => {
-  const url = String(pathToFileURL(specifier, baseUrl));
-
-  if (url.endsWith("/")) {
-    return url;
-  }
-
-  return `${url}/`;
-};
-
-const urlIsInsideProject = (url, projectDirectoryUrl) => {
-  return url.startsWith(projectDirectoryUrl);
-};
-
 const pathLeadsToFile = path => {
   try {
-    const stat = fs.statSync(path);
-    return stat.isFile();
+    const stats = fs.statSync(path);
+    return stats.isFile();
   } catch (e) {
     if (e && e.code === "ENOENT") {
       return false;
@@ -917,4 +982,4 @@ const pathLeadsToFile = path => {
 
 exports.interfaceVersion = interfaceVersion;
 exports.resolve = resolve;
-//# sourceMappingURL=main.js.map
+//# sourceMappingURL=main.cjs.map
