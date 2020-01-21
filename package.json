@@ -1,6 +1,6 @@
 {
   "name": "@jsenv/importmap-eslint-resolver",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "importmap resolution for eslint",
   "license": "MIT",
   "repository": {
@@ -43,9 +43,9 @@
     "git-hook-pre-commit": "npm run prettier-format-stage"
   },
   "dependencies": {
-    "@jsenv/import-map": "6.7.0",
+    "@jsenv/import-map": "6.7.1",
     "@jsenv/logger": "3.3.0",
-    "@jsenv/util": "3.3.2"
+    "@jsenv/util": "3.3.3"
   },
   "devDependencies": {
     "@jsenv/assert": "1.2.1",
