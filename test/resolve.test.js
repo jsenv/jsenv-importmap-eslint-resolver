@@ -9,11 +9,11 @@ import {
 import * as resolver from "../index.js"
 // const resolver = import.meta.require("../../dist/commonjs/main.js")
 
-const tempDirectoryUrl = import.meta.resolve("./temp/")
-await ensureEmptyDirectory(tempDirectoryUrl)
+const tempDirectoryUrl = resolveUrl("./temp/", import.meta.url)
 
 // import starting with /
 {
+  await ensureEmptyDirectory(tempDirectoryUrl)
   const importerFileUrl = resolveUrl("dir/foo.js", tempDirectoryUrl)
   const resolvedFileUrl = ensureWindowsDriveLetter(
     resolveUrl("/file.js", tempDirectoryUrl),
@@ -109,6 +109,7 @@ await ensureEmptyDirectory(tempDirectoryUrl)
 
 // bare specifier remapped by scope
 {
+  await ensureEmptyDirectory(tempDirectoryUrl)
   const importerFileUrl = resolveUrl("node_modules/use-scoped-foo/index.js", tempDirectoryUrl)
   const resolvedFileUrl = resolveUrl(
     "node_modules/use-scoped-foo/node_modules/foo/index.js",
@@ -134,7 +135,6 @@ await ensureEmptyDirectory(tempDirectoryUrl)
     path: urlToFileSystemPath(resolvedFileUrl),
   }
   assert({ actual, expected })
-  await ensureEmptyDirectory(tempDirectoryUrl)
 }
 
 // import an http url
@@ -161,6 +161,7 @@ await ensureEmptyDirectory(tempDirectoryUrl)
 
 // sibling file from top level project file
 {
+  await ensureEmptyDirectory(tempDirectoryUrl)
   const importerFileUrl = resolveUrl("project/importer", tempDirectoryUrl)
   const resolvedFileUrl = resolveUrl("project/file", tempDirectoryUrl)
   const projectDirectoryUrl = resolveUrl("project", tempDirectoryUrl)
@@ -175,11 +176,11 @@ await ensureEmptyDirectory(tempDirectoryUrl)
     path: urlToFileSystemPath(resolvedFileUrl),
   }
   assert({ actual, expected })
-  await ensureEmptyDirectory(tempDirectoryUrl)
 }
 
 // parent from project directory
 {
+  await ensureEmptyDirectory(tempDirectoryUrl)
   const importerFileUrl = resolveUrl("project/dir/importer", tempDirectoryUrl)
   const resolvedFileUrl = resolveUrl("project/file", tempDirectoryUrl)
   const projectDirectoryUrl = resolveUrl("project", tempDirectoryUrl)
@@ -194,11 +195,11 @@ await ensureEmptyDirectory(tempDirectoryUrl)
     path: urlToFileSystemPath(resolvedFileUrl),
   }
   assert({ actual, expected })
-  await ensureEmptyDirectory(tempDirectoryUrl)
 }
 
 // parent from top level project file
 {
+  await ensureEmptyDirectory(tempDirectoryUrl)
   const importerFileUrl = resolveUrl("project/importer", tempDirectoryUrl)
   const resolvedFileUrl = resolveUrl("file", tempDirectoryUrl)
   const projectDirectoryUrl = resolveUrl("project", tempDirectoryUrl)
@@ -213,11 +214,11 @@ await ensureEmptyDirectory(tempDirectoryUrl)
     path: urlToFileSystemPath(resolvedFileUrl),
   }
   assert({ actual, expected })
-  await ensureEmptyDirectory(tempDirectoryUrl)
 }
 
 // parent from top level project file and ignoreOutside enabled
 {
+  await ensureEmptyDirectory(tempDirectoryUrl)
   const importerFileUrl = resolveUrl("project/importer", tempDirectoryUrl)
   const resolvedFileUrl = resolveUrl("file", tempDirectoryUrl)
   const projectDirectoryUrl = resolveUrl("project", tempDirectoryUrl)
@@ -234,5 +235,4 @@ await ensureEmptyDirectory(tempDirectoryUrl)
     path: urlToFileSystemPath(resolvedFileUrl),
   }
   assert({ actual, expected })
-  await ensureEmptyDirectory(tempDirectoryUrl)
 }

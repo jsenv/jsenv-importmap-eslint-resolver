@@ -12,7 +12,8 @@ jobs:
   ci:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [windows-latest, ubuntu-latest]
+      max-parallel: 1 # to ensure windows failure can prevent ubuntu from publishing package
     runs-on: ${{ matrix.os }}
     name: node 12 on ${{ matrix.os }}
     env:
@@ -27,7 +28,6 @@ jobs:
           npm config set //npm.pkg.github.com/:_authToken ${{ secrets.GITHUB_TOKEN }}
           npm install
       - name: code quality
-        if: runner.os == 'Linux' # temporary until https://github.com/jsenv/jsenv-importmap-eslint-resolver/issues/2
         run: npm run eslint-check
       - name: code format
         run: npm run prettier-check
