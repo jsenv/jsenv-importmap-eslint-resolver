@@ -40,7 +40,7 @@ If you never installed a jsenv package, read [Installing a jsenv package](https:
 This documentation is up-to-date with a specific version so prefer any of the following commands
 
 ```console
-npm install --save-dev @jsenv/importmap-eslint-resolver@2.2.0
+npm install --save-dev @jsenv/importmap-eslint-resolver@2.2.1
 ```
 
 ## Step 3 - Configure eslint
