@@ -48,7 +48,7 @@ npm install --save-dev @jsenv/importmap-eslint-resolver@2.2.1
 - Your eslint config must enable `eslint-plugin-import`
 - Your eslint config must use `@jsenv/importmap-eslint-resolver` resolver
 
-It means your minimal `.eslintrc.js` file looks like this:
+It means your minimal `.eslintrc.cjs` file looks like this:
 
 ```js
 module.exports = {

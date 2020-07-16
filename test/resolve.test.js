@@ -82,7 +82,7 @@ const tempDirectoryUrl = resolveUrl("./temp/", import.meta.url)
     "node_modules/@babel/plugin-proposal-object-rest-spread/lib/index.js",
     tempDirectoryUrl,
   )
-  const importmapFileUrl = resolveUrl("importMap.json", tempDirectoryUrl)
+  const importmapFileUrl = resolveUrl("import-map.importmap", tempDirectoryUrl)
   await writeFile(
     importmapFileUrl,
     JSON.stringify({
@@ -115,7 +115,7 @@ const tempDirectoryUrl = resolveUrl("./temp/", import.meta.url)
     "node_modules/use-scoped-foo/node_modules/foo/index.js",
     tempDirectoryUrl,
   )
-  const importmapFileUrl = resolveUrl("importMap.json", tempDirectoryUrl)
+  const importmapFileUrl = resolveUrl("import-map.importmap", tempDirectoryUrl)
   await writeFile(
     importmapFileUrl,
     JSON.stringify({
