@@ -29,7 +29,7 @@ export const resolve = (
   {
     logLevel,
     projectDirectoryUrl,
-    importMapFileRelativeUrl = "./importMap.json",
+    importMapFileRelativeUrl = "./import-map.importmap",
     ignoreOutside = false,
     defaultExtension = false,
     node = false,

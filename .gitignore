@@ -2,7 +2,7 @@
 /coverage/
 /node_modules/
 /test/**/temp/
-/importMap.json
+/import-map.importmap
 /jsconfig.json
 /secrets.json
 /package-lock.json
