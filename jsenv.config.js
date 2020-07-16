@@ -1,3 +1,3 @@
-const { pathToFileURL } = require("url")
+export const projectDirectoryUrl = String(new URL("./", import.meta.url))
 
-exports.projectDirectoryUrl = `${String(pathToFileURL(__dirname))}/`
+export const importMapFileRelativeUrl = "./import-map.importmap"
