@@ -1,6 +1,6 @@
 {
   "name": "@jsenv/importmap-eslint-resolver",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "importmap resolution for eslint.",
   "license": "MIT",
   "repository": {
@@ -11,8 +11,7 @@
     "node": ">=13.0.0"
   },
   "publishConfig": {
-    "access": "public",
-    "registry": "https://npm.pkg.github.com"
+    "access": "public"
   },
   "type": "module",
   "exports": {
@@ -43,21 +42,21 @@
     "postpublish": "node ./script/transform-package/restore-postinstall.js"
   },
   "dependencies": {
-    "@jsenv/import-map": "6.7.4",
-    "@jsenv/logger": "3.3.1",
-    "@jsenv/util": "3.6.3"
+    "@jsenv/import-map": "6.8.0",
+    "@jsenv/logger": "3.4.0",
+    "@jsenv/util": "3.9.0"
   },
   "devDependencies": {
     "@jsenv/assert": "2.2.1",
-    "@jsenv/codecov-upload": "3.4.1",
-    "@jsenv/core": "14.0.0-alpha.10",
-    "@jsenv/eslint-config": "12.4.1",
+    "@jsenv/codecov-upload": "3.4.2",
+    "@jsenv/core": "16.0.0",
+    "@jsenv/eslint-config": "12.6.0",
     "@jsenv/github-release-package": "1.2.2",
-    "@jsenv/node-module-import-map": "12.0.0-alpha.0",
+    "@jsenv/node-module-import-map": "12.1.0",
     "@jsenv/package-publish": "1.5.1",
-    "@jsenv/prettier-check-project": "5.6.0",
+    "@jsenv/prettier-check-project": "5.6.1",
     "babel-eslint": "11.0.0-beta.0",
-    "eslint": "7.4.0",
-    "prettier": "2.0.5"
+    "eslint": "7.11.0",
+    "prettier": "2.1.2"
   }
 }
