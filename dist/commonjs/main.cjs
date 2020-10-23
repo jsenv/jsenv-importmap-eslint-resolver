@@ -816,7 +816,7 @@ const interfaceVersion = 2;
 const resolve = (source, file, {
   logLevel,
   projectDirectoryUrl,
-  importMapFileRelativeUrl = "./importMap.json",
+  importMapFileRelativeUrl = "./import-map.importmap",
   ignoreOutside = false,
   defaultExtension = false,
   node = false,
