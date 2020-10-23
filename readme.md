@@ -11,9 +11,9 @@ Import maps resolution for ESLint.
 
 - [Presentation](#Presentation)
 - [Installation](#installation)
-  - [1/3 - Install eslint-plugin-import](#1/3---install-eslint-plugin-import)
-  - [2/3 - Install importmap-eslint-resolver](#2/3---install-importmap-eslint-resolver)
-  - [3/3 - Configure eslint](#3/3---configure-eslint)
+  - [Install eslint-plugin-import](#install-eslint-plugin-import)
+  - [Install importmap-eslint-resolver](#install-importmap-eslint-resolver)
+  - [Configure eslint](#configure-eslint)
 - [Set importmap file path](#Set-importmap-file-path)
 - [Bare specifier](#Bare-specifier)
 - [Extensionless import](#extensionless-import)
@@ -53,7 +53,7 @@ This is why `@jsenv/importmap-eslint-resolver` exists: to make `import/no-unreso
 
 Follow the steps below to enable importmap resolution for ESLint.
 
-## 1/3 - Install eslint-plugin-import
+## Install eslint-plugin-import
 
 If you already use this ESLint plugin you can skip this step.
 
@@ -61,13 +61,13 @@ If you already use this ESLint plugin you can skip this step.
 npm install --save-dev eslint-plugin-import
 ```
 
-## 2/3 - Install importmap-eslint-resolver
+## Install importmap-eslint-resolver
 
 ```console
 npm install --save-dev @jsenv/importmap-eslint-resolver
 ```
 
-## 3/3 - Configure eslint
+## Configure eslint
 
 - Your eslint config must enable `eslint-plugin-import`
 - Your eslint config must use `@jsenv/importmap-eslint-resolver` resolver
