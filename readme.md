@@ -20,7 +20,7 @@ importmap resolution for eslint.
 
 # Presentation
 
-importmap are used to remap import to somewhere else. For instance the following importmap allows to remap `"foo"` to `"./foo.js"`.
+Import maps are used to remap import to somewhere else. For instance the following importmap allows to remap `"foo"` to `"./foo.js"`.
 
 ```json
 {
@@ -30,7 +30,7 @@ importmap are used to remap import to somewhere else. For instance the following
 }
 ```
 
-By providing this importmap to the browser or Node.js, all JavaScript imports resolution becomes aware of the importmap file remappings. You can write the following js file and it would search for file at `"./foo.js"`.
+By providing this importmap to the browser or Node.js, js imports resolution becomes aware of the importmap file remappings. You can write the following js file and it would search for file at `"./foo.js"`.
 
 ```js
 import { value } from "foo"
@@ -38,16 +38,16 @@ import { value } from "foo"
 console.log(value)
 ```
 
-If you use ESLint and eslint-plugin-import it would tell you the import cannot be resolved.
+If you use `import/no-unresolved` rule from `eslint-plugin-import` these imports are reported as not resolved as shown in images below.
 
-![screenshot import not resolved in vscode](./docs/vscode-import-not-resolved.png)
+![screenshot import not resolved in vscode](./docs/vscode-import-not-resolved.png)</br >
 ![screenshot eslint error in vscode](./docs/eslint-error-in-vscode.png)
 
-This is why `@jsenv/importmap-eslint-resolver` exists: to make ESLint compatible with importmap file.
+This is why `@jsenv/importmap-eslint-resolver` exists: to make `import/no-unresolved` compatible with importmap file.
 
-— see [importmap spec on github](https://github.com/WICG/import-maps)<br />
 — see [ESLint website](https://eslint.org)<br />
-— see [eslint-plugin-import on github](https://github.com/benmosher/eslint-plugin-import)
+— see [eslint-plugin-import on github](https://github.com/benmosher/eslint-plugin-import)<br />
+— see [importmap spec on github](https://github.com/WICG/import-maps)<br />
 
 # Installation
 
@@ -89,7 +89,7 @@ module.exports = {
 
 # Set importmap file path
 
-By default we will search for a file in your project directory named `import-map.importmap`. If the importmap file is located somewhere else you can use `importMapFileRelativeUrl` parameter to tell use where to look at.
+By default we will search for a file in your project directory named `import-map.importmap`. If the importmap file is located somewhere else you can use `importMapFileRelativeUrl` parameter to tell us where to look at.
 
 ```js
 module.exports = {
@@ -107,7 +107,7 @@ module.exports = {
 
 # Bare specifier
 
-A specifier is what is written after the from keyword in in import statement.
+A specifier is what is written after the from keyword in an import statement.
 
 ```js
 import value from "specifier"
@@ -118,7 +118,7 @@ This is because import map consider `"specifier"` as a special kind of specifier
 And every bare specifier must have a mapping or it cannot be resolved.
 To fix this either add a mapping or put explicitely `"./specifier.js"`.
 
-Please note that `"specifier.js"` is also a bare specifier. You should better write `"./specifier.js"` instead.
+Please note that `"specifier.js"` is also a bare specifier. You should write `"./specifier.js"` instead.
 
 # Extensionless import
 
@@ -157,7 +157,7 @@ module.exports = {
 }
 ```
 
-By passing `defaultExtension: true` you tell `@jsenv/importmap-eslint-resolver` to automatically add the importer extension to extension less specifiers.
+By passing `defaultExtension: true` you tell `@jsenv/importmap-eslint-resolver` to automatically add the importer extension when its omitted.
 
 ```js
 import { value } from "./file"
