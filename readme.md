@@ -163,5 +163,5 @@ By passing `defaultExtension: true` you tell `@jsenv/importmap-eslint-resolver` 
 import { value } from "./file"
 ```
 
-Written in `index.js` search file at `file.js`.<br />
-Written in `index.ts` search file at `file.ts`.
+If written in `index.js`, searches file at `file.js`.<br />
+If written in `index.ts`, searches file at `file.ts`.
