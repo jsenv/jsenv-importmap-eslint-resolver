@@ -1,7 +1,8 @@
-import { generateCommonJsBundleForNode } from "@jsenv/core"
+import { generateBundle } from "@jsenv/core"
 import * as jsenvConfig from "../../jsenv.config.js"
 
-generateCommonJsBundleForNode({
+generateBundle({
   ...jsenvConfig,
+  format: "commonjs",
   bundleDirectoryClean: true,
 })
