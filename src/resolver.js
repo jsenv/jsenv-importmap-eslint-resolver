@@ -2,7 +2,7 @@
 // https://github.com/benmosher/eslint-plugin-import/tree/master/resolvers
 // https://github.com/olalonde/eslint-import-resolver-babel-root-import
 
-import { readFileSync, statSync } from "fs"
+import { readFileSync, statSync, realpathSync } from "fs"
 import { createLogger } from "@jsenv/logger"
 import { normalizeImportMap, resolveImport } from "@jsenv/import-map"
 import {
@@ -30,6 +30,7 @@ export const resolve = (
     logLevel,
     projectDirectoryUrl,
     importMapFileRelativeUrl = "./import-map.importmap",
+    caseSensitive = true,
     ignoreOutside = false,
     defaultExtension = false,
     node = false,
@@ -141,6 +142,22 @@ ${urlToFileSystemPath(projectDirectoryUrl)}
       }
 
       if (pathLeadsToFile(importFilePath)) {
+        if (caseSensitive) {
+          const importFileRealPath = realpathSync.native(importFilePath)
+          if (importFileRealPath !== importFilePath) {
+            logger.warn(
+              `WARNING: file found at ${importFilePath} but would not be found on a case sensitive filesystem.
+The real file path is ${importFileRealPath}.
+You can choose to disable this warning by disabling case sensitivity.
+If you do so keep in mind windows users would not find that file.`,
+            )
+            return {
+              found: false,
+              path: importFilePath,
+            }
+          }
+        }
+
         logger.debug(`-> found file at ${importUrl}`)
         return {
           found: true,

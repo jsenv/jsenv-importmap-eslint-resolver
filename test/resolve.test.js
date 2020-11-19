@@ -178,6 +178,27 @@ const tempDirectoryUrl = resolveUrl("./temp/", import.meta.url)
   assert({ actual, expected })
 }
 
+// case sensitivity
+if (process.platform === "darwin" || process.platform === "linux") {
+  await ensureEmptyDirectory(tempDirectoryUrl)
+  const importerFileUrl = resolveUrl("project/importer", tempDirectoryUrl)
+  const resolvedFileUrl = resolveUrl("project/file.js", tempDirectoryUrl)
+  const projectDirectoryUrl = resolveUrl("project", tempDirectoryUrl)
+  await writeFile(importerFileUrl)
+  await writeFile(resolvedFileUrl)
+
+  const actual = resolver.resolve("./File.js", urlToFileSystemPath(importerFileUrl), {
+    projectDirectoryUrl,
+    caseSensitive: true,
+    logLevel: "error",
+  })
+  const expected = {
+    found: false,
+    path: urlToFileSystemPath(resolveUrl("project/File.js", tempDirectoryUrl)),
+  }
+  assert({ actual, expected })
+}
+
 // parent from project directory
 {
   await ensureEmptyDirectory(tempDirectoryUrl)
