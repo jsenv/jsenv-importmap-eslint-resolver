@@ -5,6 +5,7 @@
 import { readFileSync, statSync, realpathSync } from "fs"
 import { createLogger } from "@jsenv/logger"
 import { normalizeImportMap, resolveImport } from "@jsenv/import-map"
+import { isSpecifierForNodeCoreModule } from "@jsenv/import-map/src/isSpecifierForNodeCoreModule.js"
 import {
   assertAndNormalizeDirectoryUrl,
   resolveUrl,
@@ -13,8 +14,6 @@ import {
   urlToFileSystemPath,
   fileSystemPathToUrl,
 } from "@jsenv/util"
-import { isNativeNodeModuleBareSpecifier } from "./internal/isNativeNodeModuleBareSpecifier.js"
-import { isNativeBrowserModuleBareSpecifier } from "./internal/isNativeBrowserModuleBareSpecifier.js"
 
 const applyUrlResolution = (specifier, importer) => {
   const url = resolveUrl(specifier, importer)
@@ -34,7 +33,6 @@ export const resolve = (
     ignoreOutside = false,
     defaultExtension = false,
     node = false,
-    browser = false,
   },
 ) => {
   projectDirectoryUrl = assertAndNormalizeDirectoryUrl(projectDirectoryUrl)
@@ -83,16 +81,8 @@ ${file}
 --- project directory path ---
 ${urlToFileSystemPath(projectDirectoryUrl)}`)
 
-  if (node && isNativeNodeModuleBareSpecifier(source)) {
+  if (node && isSpecifierForNodeCoreModule(source)) {
     logger.debug(`-> native node module`)
-    return {
-      found: true,
-      path: null,
-    }
-  }
-
-  if (browser && isNativeBrowserModuleBareSpecifier(source)) {
-    logger.debug(`-> native browser module`)
     return {
       found: true,
       path: null,

@@ -6,8 +6,7 @@ import {
   urlToFileSystemPath,
   writeFile,
 } from "@jsenv/util"
-import * as resolver from "../index.js"
-// const resolver = import.meta.require("../../dist/commonjs/main.js")
+import * as resolver from "@jsenv/importmap-eslint-resolver"
 
 const tempDirectoryUrl = resolveUrl("./temp/", import.meta.url)
 
