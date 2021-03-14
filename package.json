@@ -16,7 +16,7 @@
   "type": "module",
   "exports": {
     ".": {
-      "import": "./index.js",
+      "import": "./main.js",
       "require": "./dist/commonjs/main.cjs"
     }
   },
