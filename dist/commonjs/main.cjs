@@ -5,13 +5,8 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var fs = require('fs');
 var logger = require('@jsenv/logger');
 var importMap = require('@jsenv/import-map');
+var isSpecifierForNodeCoreModule_js = require('@jsenv/import-map/src/isSpecifierForNodeCoreModule.js');
 var util = require('@jsenv/util');
-
-const NATIVE_NODE_MODULE_SPECIFIER_ARRAY = ["assert", "async_hooks", "buffer_ieee754", "buffer", "child_process", "cluster", "console", "constants", "crypto", "_debugger", "dgram", "dns", "domain", "events", "freelist", "fs", "fs/promises", "_http_agent", "_http_client", "_http_common", "_http_incoming", "_http_outgoing", "_http_server", "http", "http2", "https", "inspector", "_linklist", "module", "net", "node-inspect/lib/_inspect", "node-inspect/lib/internal/inspect_client", "node-inspect/lib/internal/inspect_repl", "os", "path", "perf_hooks", "process", "punycode", "querystring", "readline", "repl", "smalloc", "_stream_duplex", "_stream_transform", "_stream_wrap", "_stream_passthrough", "_stream_readable", "_stream_writable", "stream", "string_decoder", "sys", "timers", "_tls_common", "_tls_legacy", "_tls_wrap", "tls", "trace_events", "tty", "url", "util", "v8/tools/arguments", "v8/tools/codemap", "v8/tools/consarray", "v8/tools/csvparser", "v8/tools/logreader", "v8/tools/profile_view", "v8/tools/splaytree", "v8", "vm", "worker_threads", "zlib", // global is special
-"global"];
-const isNativeNodeModuleBareSpecifier = specifier => NATIVE_NODE_MODULE_SPECIFIER_ARRAY.includes(specifier);
-
-const isNativeBrowserModuleBareSpecifier = () => false;
 
 // https://github.com/benmosher/eslint-plugin-import/blob/master/resolvers/node/index.js
 
@@ -28,8 +23,7 @@ const resolve = (source, file, {
   caseSensitive = true,
   ignoreOutside = false,
   defaultExtension = false,
-  node = false,
-  browser = false
+  node = false
 }) => {
   projectDirectoryUrl = util.assertAndNormalizeDirectoryUrl(projectDirectoryUrl);
   let importMap$1;
@@ -76,16 +70,8 @@ ${file}
 --- project directory path ---
 ${util.urlToFileSystemPath(projectDirectoryUrl)}`);
 
-  if (node && isNativeNodeModuleBareSpecifier(source)) {
+  if (node && isSpecifierForNodeCoreModule_js.isSpecifierForNodeCoreModule(source)) {
     logger$1.debug(`-> native node module`);
-    return {
-      found: true,
-      path: null
-    };
-  }
-
-  if (browser && isNativeBrowserModuleBareSpecifier()) {
-    logger$1.debug(`-> native browser module`);
     return {
       found: true,
       path: null
