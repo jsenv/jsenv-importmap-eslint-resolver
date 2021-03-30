@@ -6,4 +6,11 @@ buildProject({
   format: "commonjs",
   babelPluginMap: getBabelPluginMapForNode(),
   buildDirectoryClean: true,
+  externalImportUrlPatterns: {
+    "node_modules/": true,
+    // ensure this specific file is inlined
+    // otherhwise a .js would be required when would throw
+    // 'require() of ES modules is not supported'
+    "node_modules/@jsenv/import-map/src/isSpecifierForNodeCoreModule.js": false,
+  },
 })
