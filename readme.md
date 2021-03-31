@@ -11,12 +11,11 @@ Import maps resolution for ESLint.
 
 - [Presentation](#Presentation)
 - [Installation](#installation)
-  - [Install eslint-plugin-import](#install-eslint-plugin-import)
-  - [Install importmap-eslint-resolver](#install-importmap-eslint-resolver)
-  - [Configure eslint](#configure-eslint)
 - [Set importmap file path](#Set-importmap-file-path)
-- [Bare specifier](#Bare-specifier)
+- [Case sensitivity](#Case-sensitivity)
+- [Node core modules](#Node-core-modules)
 - [Extensionless import](#extensionless-import)
+- [Bare specifier](#Bare-specifier)
 
 # Presentation
 
@@ -53,26 +52,35 @@ This is why `@jsenv/importmap-eslint-resolver` exists: to make `import/no-unreso
 
 Follow the steps below to enable importmap resolution for ESLint.
 
-## Install eslint-plugin-import
+<details>
+  <summary>Install eslint-plugin-import</summary>
 
-If you already use this ESLint plugin you can skip this step.
+> If you already use this ESLint plugin you can skip this step.
 
 ```console
 npm install --save-dev eslint-plugin-import
 ```
 
-## Install importmap-eslint-resolver
+</details>
+
+<details>
+  <summary>Install importmap-eslint-resolver</summary>
 
 ```console
 npm install --save-dev @jsenv/importmap-eslint-resolver
 ```
 
-## Configure eslint
+</details>
 
-- Your eslint config must enable `eslint-plugin-import`
-- Your eslint config must use `@jsenv/importmap-eslint-resolver` resolver
+<details>
+  <summary>Configure ESLint</summary>
 
-It means your minimal `.eslintrc.cjs` file looks like this:
+Your ESLint config must:
+
+- enable `eslint-plugin-import` in `plugins`
+- configure `eslint-plugin-import` to use `@jsenv/importmap-eslint-resolver` as resolver
+
+Your minimal `.eslintrc.cjs` file looks like this:
 
 ```js
 module.exports = {
@@ -87,9 +95,14 @@ module.exports = {
 }
 ```
 
+</details>
+
 # Set importmap file path
 
 By default we will search for a file in your project directory named `import-map.importmap`. If the importmap file is located somewhere else you can use `importMapFileRelativeUrl` parameter to tell us where to look at.
+
+<details>
+  <summary>See ESLint config where importmap path is used</summary>
 
 ```js
 module.exports = {
@@ -105,20 +118,74 @@ module.exports = {
 }
 ```
 
-# Bare specifier
+</details>
 
-A specifier is what is written after the from keyword in an import statement.
+# Case sensitivity
+
+This resolver is case sensitive by default: An import is found only if the import path and actual file on the filesystem have same case.
 
 ```js
-import value from "specifier"
+import { getUser } "./getUser.js"
 ```
 
-If there is no mapping of `"specifier"` to `"./specifier.js"` the imported file will not be found.
-This is because import map consider `"specifier"` as a special kind of specifier called bare specifier.
-And every bare specifier must have a mapping or it cannot be resolved.
-To fix this either add a mapping or put explicitely `"./specifier.js"`.
+The import above is found only if there is a file `getUser.js`. It won't be found if file is named `getuser.js`, even if the filesystem is case insensitive.
 
-Please note that `"specifier.js"` is also a bare specifier. You should write `"./specifier.js"` instead.
+This ensure two things:
+
+- Project is compatible with Windows or other operating system where filesystem is case sensitive.
+- import paths are consistent with what is actually on the filesystem
+
+Case sensitivity can be disabled using `caseSensitive: false`
+
+<details>
+<summary>See ESLint config where case sensitivity is disabled
+</summary>
+
+```js
+module.exports = {
+  plugins: ["import"],
+  settings: {
+    "import/resolver": {
+      [require.resolve("@jsenv/importmap-eslint-resolver")]: {
+        projectDirectoryUrl: __dirname,
+        caseSensitive: false,
+      },
+    },
+  },
+}
+```
+
+</details>
+
+# Node core modules
+
+This resolver consider files are written for browsers by default: Node core modules will be considered as not found.
+
+```js
+import { readFile } from "fs"
+```
+
+The import would be reported by ESLint as not resolved. You can pass `node: true` in ESLint config and node core modules will be handled gracefully.
+
+<details>
+<summary>See ESLint config where node is enabled
+</summary>
+
+```js
+module.exports = {
+  plugins: ["import"],
+  settings: {
+    "import/resolver": {
+      [require.resolve("@jsenv/importmap-eslint-resolver")]: {
+        projectDirectoryUrl: __dirname,
+        node: true,
+      },
+    },
+  },
+}
+```
+
+</details>
 
 # Extensionless import
 
@@ -141,7 +208,20 @@ The best solution to avoid configuring your brain and your browser is to keep th
 + import { value } from './file.js'
 ```
 
-But if for some reason this is problematic you can still configure `@jsenv/importmap-eslint-resolver` to understand these extensionless specifiers.
+But if for some reason this is problematic you can still configure `@jsenv/importmap-eslint-resolver` to understand these extensionless specifiers using `defaultExtension`.
+
+By passing `defaultExtension: true` you tell `@jsenv/importmap-eslint-resolver` to automatically add the importer extension when its omitted.
+
+```js
+import { value } from "./file"
+```
+
+If written in `index.js`, searches file at `file.js`.<br />
+If written in `index.ts`, searches file at `file.ts`.
+
+<details>
+<summary>See ESLint config where default extension is enabled
+</summary>
 
 ```js
 module.exports = {
@@ -157,11 +237,19 @@ module.exports = {
 }
 ```
 
-By passing `defaultExtension: true` you tell `@jsenv/importmap-eslint-resolver` to automatically add the importer extension when its omitted.
+</details>
+
+# Bare specifier
+
+A specifier is what is written after the from keyword in an import statement.
 
 ```js
-import { value } from "./file"
+import value from "specifier"
 ```
 
-If written in `index.js`, searches file at `file.js`.<br />
-If written in `index.ts`, searches file at `file.ts`.
+If there is no mapping of `"specifier"` to `"./specifier.js"` the imported file will not be found.
+This is because import map consider `"specifier"` as a special kind of specifier called bare specifier.
+And every bare specifier must have a mapping or it cannot be resolved.
+To fix this either add a mapping or put explicitely `"./specifier.js"`.
+
+Please note that `"specifier.js"` is also a bare specifier. You should write `"./specifier.js"` instead.
