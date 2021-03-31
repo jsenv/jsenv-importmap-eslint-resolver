@@ -125,7 +125,7 @@ module.exports = {
 This resolver is case sensitive by default: An import is found only if the import path and actual file on the filesystem have same case.
 
 ```js
-import { getUser } "./getUser.js"
+import { getUser } from "./getUser.js"
 ```
 
 The import above is found only if there is a file `getUser.js`. It won't be found if file is named `getuser.js`, even if the filesystem is case insensitive.
