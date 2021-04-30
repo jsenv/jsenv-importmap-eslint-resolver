@@ -28,7 +28,7 @@ export const resolve = (
     ignoreOutside = false,
     defaultExtension = false,
     node = false,
-    fallbackOnNodeModuleResolution = false,
+    disableNodeModuleResolution = false,
   },
 ) => {
   projectDirectoryUrl = assertAndNormalizeDirectoryUrl(projectDirectoryUrl)
@@ -63,7 +63,7 @@ ${urlToFileSystemPath(projectDirectoryUrl)}`)
       importer,
       defaultExtension,
       node,
-      fallbackOnNodeModuleResolution,
+      disableNodeModuleResolution,
     })
     if (!importUrl) {
       return {
@@ -108,7 +108,7 @@ const applyImportResolution = (
     importer,
     defaultExtension,
     node,
-    fallbackOnNodeModuleResolution,
+    disableNodeModuleResolution,
   },
 ) => {
   const importResolutionResult = applyImportMapResolution(specifier, {
@@ -123,7 +123,7 @@ const applyImportResolution = (
     return importResolutionResult
   }
 
-  if (node && fallbackOnNodeModuleResolution) {
+  if (node && !disableNodeModuleResolution) {
     const nodeModuleResolutionResult = applyNodeModuleResolution(specifier, {
       importer,
       logger,

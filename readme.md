@@ -126,7 +126,7 @@ This ensure two things:
 
 Case sensitivity can be disabled using [caseSensitive parameter](#Configuration)
 
-## Node core modules
+## Node module resolution
 
 This resolver consider files are written for browsers by default: Node core modules will be considered as not found.
 
@@ -136,7 +136,7 @@ import { readFile } from "fs"
 
 The import above would be reported by ESLint as not found.
 
-If the file is written for Node.js, you can consider node core modules as found using [node parameter](#Configuration)
+If the file is written for Node.js, you can consider node core modules as found and enable node module resolution using [node parameter](#Configuration)
 
 ## Extensionless import
 
@@ -245,7 +245,6 @@ If written in `whatever.ts`, searches at `file.ts`.
 `node` parameter is a boolean indicating if the file are written for Node.js. This parameter is optional and disabled by default. See [Node core modules](#Node-core-modules)
 
 When enabled node core modules (path, fs, url, etc) will be considered as found.
-When disabled `fallbackOnNodeModuleResolution` parameter is ignored.
 
 ```js
 module.exports = {
@@ -256,31 +255,6 @@ module.exports = {
         projectDirectoryUrl: __dirname,
         importMapFileRelativeUrl: "./project.importmap",
         node: true,
-      },
-    },
-  },
-}
-```
-
-</details>
-
-<details>
-  <summary>fallbackOnNodeModuleResolution parameter</summary>
-
-`fallbackOnNodeModuleResolution` parameter is a boolean indicating if import resolution will try node module resolution as fallback when importmap found nothing. This parameter is optional and disabled by default.
-
-When enabled node module resolution is applied
-
-```js
-module.exports = {
-  plugins: ["import"],
-  settings: {
-    "import/resolver": {
-      [require.resolve("@jsenv/importmap-eslint-resolver")]: {
-        projectDirectoryUrl: __dirname,
-        importMapFileRelativeUrl: "./project.importmap",
-        node: true,
-        fallbackOnNodeModuleResolution: true,
       },
     },
   },
