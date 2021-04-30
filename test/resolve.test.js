@@ -97,6 +97,7 @@ const tempDirectoryUrl = resolveUrl("./temp/", import.meta.url)
     urlToFileSystemPath(importerFileUrl),
     {
       projectDirectoryUrl: tempDirectoryUrl,
+      importMapFileRelativeUrl: "import-map.importmap",
     },
   )
   const expected = {
@@ -128,6 +129,7 @@ const tempDirectoryUrl = resolveUrl("./temp/", import.meta.url)
 
   const actual = resolver.resolve("foo", urlToFileSystemPath(importerFileUrl), {
     projectDirectoryUrl: tempDirectoryUrl,
+    importMapFileRelativeUrl: "import-map.importmap",
   })
   const expected = {
     found: false,
