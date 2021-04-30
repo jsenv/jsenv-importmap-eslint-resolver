@@ -13,6 +13,7 @@ Import maps resolution for ESLint.
 - [Installation](#installation)
 - [About resolution](#About-resolution)
 - [Configuration](#Configuration)
+- [Advanced configuration example](#Advanced-configuration-example)
 
 # Presentation
 
@@ -287,3 +288,49 @@ module.exports = {
 ```
 
 </details>
+
+# Advanced configuration example
+
+In a project mixing files written for the browser AND for Node.js you should tell ESLint which are which. This is possible thanks to `overrides`. `overrides` is documented on ESLint in [Configuration Based on Glob Patterns](https://eslint.org/docs/user-guide/configuring/configuration-files#configuration-based-on-glob-patterns).
+
+`.eslintrc.cjs`
+
+```js
+const importResolverPath = require.resolve("@jsenv/importmap-eslint-resolver")
+
+module.exports = {
+  plugins: ["import"],
+  env: {
+    es6: true,
+    // ESLint will consider all files as written for a browser by default
+    browser: true,
+    node: false,
+  },
+  settings: {
+    "import/resolver": {
+      [importResolverPath]: {
+        projectDirectoryUrl: __dirname,
+        importMapFileRelativeUrl: "./project.importmap",
+      },
+    },
+  },
+  overrides: [
+    {
+      // ESLint will consider all files inside script/ and ending with .cjs as written for Node.js
+      files: ["script/**/*.js", "**/*.cjs"],
+      env: {
+        es6: true,
+        browser: false,
+        node: true,
+      },
+      settings: {
+        "import/resolver": {
+          [importResolverPath]: {
+            node: true,
+          },
+        },
+      },
+    },
+  ],
+}
+```
