@@ -242,7 +242,7 @@ If written in `whatever.ts`, searches at `file.ts`.
 <details>
   <summary>node parameter</summary>
 
-`node` parameter is a boolean indicating if the file are written for Node.js. This parameter is optional and disabled by default. See [Node core modules](#Node-core-modules)
+`node` parameter is a boolean indicating if the file are written for Node.js. This parameter is optional and disabled by default. See [Node module resolution](#Node-module-resolution)
 
 When enabled node core modules (path, fs, url, etc) will be considered as found.
 
@@ -253,7 +253,6 @@ module.exports = {
     "import/resolver": {
       [require.resolve("@jsenv/importmap-eslint-resolver")]: {
         projectDirectoryUrl: __dirname,
-        importMapFileRelativeUrl: "./project.importmap",
         node: true,
       },
     },
