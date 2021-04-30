@@ -11,11 +11,8 @@ Import maps resolution for ESLint.
 
 - [Presentation](#Presentation)
 - [Installation](#installation)
-- [Set importmap file path](#Set-importmap-file-path)
-- [Case sensitivity](#Case-sensitivity)
-- [Node core modules](#Node-core-modules)
-- [Extensionless import](#extensionless-import)
-- [Bare specifier](#Bare-specifier)
+- [About resolution](#About-resolution)
+- [Configuration](#Configuration)
 
 # Presentation
 
@@ -79,30 +76,9 @@ Your ESLint config must:
 
 - enable `eslint-plugin-import` in `plugins`
 - configure `eslint-plugin-import` to use `@jsenv/importmap-eslint-resolver` as resolver
+- configure `projectDirectoryUrl` and `importMapFileRelativeUrl`
 
 Your minimal `.eslintrc.cjs` file looks like this:
-
-```js
-module.exports = {
-  plugins: ["import"],
-  settings: {
-    "import/resolver": {
-      [require.resolve("@jsenv/importmap-eslint-resolver")]: {
-        projectDirectoryUrl: __dirname,
-      },
-    },
-  },
-}
-```
-
-</details>
-
-# Set importmap file path
-
-By default we will search for a file in your project directory named `import-map.importmap`. If the importmap file is located somewhere else you can use `importMapFileRelativeUrl` parameter to tell us where to look at.
-
-<details>
-  <summary>See ESLint config where importmap path is used</summary>
 
 ```js
 module.exports = {
@@ -120,7 +96,19 @@ module.exports = {
 
 </details>
 
-# Case sensitivity
+# About resolution
+
+**By default** the resolution is:
+
+- case sensitive
+- browser like
+  - consider node core modules (fs, url) as not found
+  - do not implement node module resolution
+  - do not understand path without extension (does not try to auto add extension)
+
+This resolution **default** behaviour is documented in this section and **can be configured to your convenience**.
+
+## Case sensitivity
 
 This resolver is case sensitive by default: An import is found only if the import path and actual file on the filesystem have same case.
 
@@ -135,29 +123,9 @@ This ensure two things:
 - Project is compatible with Windows or other operating system where filesystem is case sensitive.
 - import paths are consistent with what is actually on the filesystem
 
-Case sensitivity can be disabled using `caseSensitive: false`
+Case sensitivity can be disabled using [caseSensitive parameter](#Configuration)
 
-<details>
-<summary>See ESLint config where case sensitivity is disabled
-</summary>
-
-```js
-module.exports = {
-  plugins: ["import"],
-  settings: {
-    "import/resolver": {
-      [require.resolve("@jsenv/importmap-eslint-resolver")]: {
-        projectDirectoryUrl: __dirname,
-        caseSensitive: false,
-      },
-    },
-  },
-}
-```
-
-</details>
-
-# Node core modules
+## Node core modules
 
 This resolver consider files are written for browsers by default: Node core modules will be considered as not found.
 
@@ -165,29 +133,11 @@ This resolver consider files are written for browsers by default: Node core modu
 import { readFile } from "fs"
 ```
 
-The import would be reported by ESLint as not resolved. You can pass `node: true` in ESLint config and node core modules will be handled gracefully.
+The import above would be reported by ESLint as not found.
 
-<details>
-<summary>See ESLint config where node is enabled
-</summary>
+If the file is written for Node.js, you can consider node core modules as found using [node parameter](#Configuration)
 
-```js
-module.exports = {
-  plugins: ["import"],
-  settings: {
-    "import/resolver": {
-      [require.resolve("@jsenv/importmap-eslint-resolver")]: {
-        projectDirectoryUrl: __dirname,
-        node: true,
-      },
-    },
-  },
-}
-```
-
-</details>
-
-# Extensionless import
+## Extensionless import
 
 Extensionless import means an import where the specifier omits the file extension.
 
@@ -208,38 +158,9 @@ The best solution to avoid configuring your brain and your browser is to keep th
 + import { value } from './file.js'
 ```
 
-But if for some reason this is problematic you can still configure `@jsenv/importmap-eslint-resolver` to understand these extensionless specifiers using `defaultExtension`.
+But if for some reason this is problematic you can allow extensionless specifiers using [defaultExtension parameter](#Configuration)
 
-By passing `defaultExtension: true` you tell `@jsenv/importmap-eslint-resolver` to automatically add the importer extension when its omitted.
-
-```js
-import { value } from "./file"
-```
-
-If written in `index.js`, searches file at `file.js`.<br />
-If written in `index.ts`, searches file at `file.ts`.
-
-<details>
-<summary>See ESLint config where default extension is enabled
-</summary>
-
-```js
-module.exports = {
-  plugins: ["import"],
-  settings: {
-    "import/resolver": {
-      [require.resolve("@jsenv/importmap-eslint-resolver")]: {
-        projectDirectoryUrl: __dirname,
-        defaultExtension: true,
-      },
-    },
-  },
-}
-```
-
-</details>
-
-# Bare specifier
+## Bare specifier
 
 A specifier is what is written after the from keyword in an import statement.
 
@@ -253,3 +174,116 @@ And every bare specifier must have a mapping or it cannot be resolved.
 To fix this either add a mapping or put explicitely `"./specifier.js"`.
 
 Please note that `"specifier.js"` is also a bare specifier. You should write `"./specifier.js"` instead.
+
+# Configuration
+
+<details>
+  <summary>importMapFileRelativeUrl parameter</summary>
+
+`importMapFileRelativeUrl` parameter is a string leading to an importmap file. This parameter is optional and `undefined` by default.
+
+```js
+module.exports = {
+  plugins: ["import"],
+  settings: {
+    "import/resolver": {
+      [require.resolve("@jsenv/importmap-eslint-resolver")]: {
+        projectDirectoryUrl: __dirname,
+        importMapFileRelativeUrl: "./project.importmap",
+      },
+    },
+  },
+}
+```
+
+</details>
+
+<details>
+  <summary>caseSensitive parameter</summary>
+
+`caseSensitive` parameter is a boolean indicating if the file path will be case sensitive. This parameter is optional and enabled by default. See [Case sensitivity](#Case-sensitivity).
+
+```js
+module.exports = {
+  plugins: ["import"],
+  settings: {
+    "import/resolver": {
+      [require.resolve("@jsenv/importmap-eslint-resolver")]: {
+        projectDirectoryUrl: __dirname,
+        importMapFileRelativeUrl: "./project.importmap",
+        caseSensitive: false,
+      },
+    },
+  },
+}
+```
+
+</details>
+
+<details>
+  <summary>defaultExtension parameter</summary>
+
+`defaultExtension` parameter is a boolean indicating if a default extension will be automatically added to import without file extension. This parameter is optional and disabled by default. See [Extensionless import](#Extensionless-import)
+
+When enabled the following import
+
+```js
+import { value } from "./file"
+```
+
+Will search for a file with an extension. The extension is "inherited" from the file where the import is written:
+
+If written in `whatever.js`, searches at `file.js`.<br />
+If written in `whatever.ts`, searches at `file.ts`.
+
+</details>
+
+<details>
+  <summary>node parameter</summary>
+
+`node` parameter is a boolean indicating if the file are written for Node.js. This parameter is optional and disabled by default. See [Node core modules](#Node-core-modules)
+
+When enabled node core modules (path, fs, url, etc) will be considered as found.
+When disabled `fallbackOnNodeModuleResolution` parameter is ignored.
+
+```js
+module.exports = {
+  plugins: ["import"],
+  settings: {
+    "import/resolver": {
+      [require.resolve("@jsenv/importmap-eslint-resolver")]: {
+        projectDirectoryUrl: __dirname,
+        importMapFileRelativeUrl: "./project.importmap",
+        node: true,
+      },
+    },
+  },
+}
+```
+
+</details>
+
+<details>
+  <summary>fallbackOnNodeModuleResolution parameter</summary>
+
+`fallbackOnNodeModuleResolution` parameter is a boolean indicating if import resolution will try node module resolution as fallback when importmap found nothing. This parameter is optional and disabled by default.
+
+When enabled node module resolution is applied
+
+```js
+module.exports = {
+  plugins: ["import"],
+  settings: {
+    "import/resolver": {
+      [require.resolve("@jsenv/importmap-eslint-resolver")]: {
+        projectDirectoryUrl: __dirname,
+        importMapFileRelativeUrl: "./project.importmap",
+        node: true,
+        fallbackOnNodeModuleResolution: true,
+      },
+    },
+  },
+}
+```
+
+</details>
