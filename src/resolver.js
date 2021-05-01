@@ -13,7 +13,7 @@ import {
   fileSystemPathToUrl,
 } from "@jsenv/util"
 import { applyImportMapResolution } from "./internal/resolution-import-map.js"
-import { applyNodeModuleResolution } from "./internal/resolution-node.js"
+import { applyCommonJsModuleResolution } from "./internal/resolution-node-commonjs.js"
 
 export const interfaceVersion = 2
 
@@ -28,7 +28,7 @@ export const resolve = (
     ignoreOutside = false,
     defaultExtension = false,
     node = false,
-    disableNodeModuleResolution = false,
+    commonJsModuleResolution = false,
   },
 ) => {
   projectDirectoryUrl = assertAndNormalizeDirectoryUrl(projectDirectoryUrl)
@@ -63,7 +63,7 @@ ${urlToFileSystemPath(projectDirectoryUrl)}`)
       importer,
       defaultExtension,
       node,
-      disableNodeModuleResolution,
+      commonJsModuleResolution,
     })
     if (!importUrl) {
       return {
@@ -108,7 +108,7 @@ const applyImportResolution = (
     importer,
     defaultExtension,
     node,
-    disableNodeModuleResolution,
+    commonJsModuleResolution,
   },
 ) => {
   const importResolutionResult = applyImportMapResolution(specifier, {
@@ -123,8 +123,8 @@ const applyImportResolution = (
     return importResolutionResult
   }
 
-  if (node && !disableNodeModuleResolution) {
-    const nodeModuleResolutionResult = applyNodeModuleResolution(specifier, {
+  if (node && commonJsModuleResolution) {
+    const nodeModuleResolutionResult = applyCommonJsModuleResolution(specifier, {
       importer,
       logger,
     })

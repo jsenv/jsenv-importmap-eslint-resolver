@@ -1,7 +1,7 @@
 import { createRequire } from "module"
 import { urlToFileSystemPath, fileSystemPathToUrl } from "@jsenv/util"
 
-export const applyNodeModuleResolution = (specifier, { importer }) => {
+export const applyCommonJsModuleResolution = (specifier, { importer }) => {
   const importerPath = urlToFileSystemPath(importer)
   const require = createRequire(importerPath)
   let specifierPath

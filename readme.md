@@ -53,8 +53,6 @@ Follow the steps below to enable importmap resolution for ESLint.
 <details>
   <summary>Install eslint-plugin-import</summary>
 
-> If you already use this ESLint plugin you can skip this step.
-
 ```console
 npm install --save-dev eslint-plugin-import
 ```
@@ -75,11 +73,11 @@ npm install --save-dev @jsenv/importmap-eslint-resolver
 
 Your ESLint config must:
 
-- enable `eslint-plugin-import` in `plugins`
-- configure `eslint-plugin-import` to use `@jsenv/importmap-eslint-resolver` as resolver
+- enable `"import"` in `plugins`
+- configure `"import/resolver"` to use `@jsenv/importmap-eslint-resolver` as resolver
 - configure `projectDirectoryUrl` and `importMapFileRelativeUrl`
 
-Your minimal `.eslintrc.cjs` file looks like this:
+The minimal `.eslintrc.cjs` file look like this:
 
 ```js
 module.exports = {
@@ -128,15 +126,22 @@ Case sensitivity can be disabled using [caseSensitive parameter](#Configuration)
 
 ## Node module resolution
 
-This resolver consider files are written for browsers by default: Node core modules will be considered as not found.
+As mentionned previously this resolver behaves by default like a browser. It must be configured to be compatible node module resolution.
 
-```js
-import { readFile } from "fs"
-```
+If your file is written for node, please inform the resolver using [node parameter](#Configuration) so that it consider node core modules as found.
 
-The import above would be reported by ESLint as not found.
+Before seing how to get node module resolution, please note there is two distinct resolution:
 
-If the file is written for Node.js, you can consider node core modules as found and enable node module resolution using [node parameter](#Configuration)
+- `Commonjs module resolution`
+- `ES module resolution`
+
+### Node esm resolution
+
+The importmap file must contain all the mappings corresponding to the [node esm resolution algorithm](https://nodejs.org/dist/latest-v16.x/docs/api/esm.html#esm_resolution_algorithm). You can do this by using [@jsenv/node-module-import-map](https://github.com/jsenv/jsenv-node-module-import-map) to generate your importmap file.
+
+### Node commonjs resolution
+
+If the importmap file does not already contain mapping, resolver can fallback to [node commonjs resolution algorithm](https://nodejs.org/dist/latest-v16.x/docs/api/modules.html#modules_all_together). You can enable this using [commonJsModuleResolution parameter](#Configuration).
 
 ## Extensionless import
 
@@ -262,20 +267,32 @@ module.exports = {
 
 </details>
 
+<details>
+  <summary>commonJsModuleResolution parameter</summary>
+
+`commonJsModuleResolution` parameter is a boolean controlling if the resolver will fallback to [node commonjs resolution algorithm](https://nodejs.org/dist/latest-v16.x/docs/api/modules.html#modules_all_together). This parameter is optional and disabled by default.
+
+Check [Advanced configuratione example](#Advanced-configuration-example) to see how it is meant to be used.
+
+</details>
+
 # Advanced configuration example
 
-In a project mixing files written for the browser AND for Node.js you should tell ESLint which are which. This is possible thanks to `overrides`. `overrides` is documented on ESLint in [Configuration Based on Glob Patterns](https://eslint.org/docs/user-guide/configuring/configuration-files#configuration-based-on-glob-patterns).
+In a project mixing files written for the browser AND for Node.js you should tell ESLint which are which. This is possible thanks to `overrides` documented on ESLint in [Configuration Based on Glob Patterns](https://eslint.org/docs/user-guide/configuring/configuration-files#configuration-based-on-glob-patterns).
 
 `.eslintrc.cjs`
 
 ```js
+const eslintConfig = {
+  plugins: ["import"],
+  overrides: [],
+}
 const importResolverPath = require.resolve("@jsenv/importmap-eslint-resolver")
 
-module.exports = {
-  plugins: ["import"],
+// by default consider files as written for browsers
+Object.assign(eslintConfig, {
   env: {
     es6: true,
-    // ESLint will consider all files as written for a browser by default
     browser: true,
     node: false,
   },
@@ -287,23 +304,42 @@ module.exports = {
       },
     },
   },
-  overrides: [
-    {
-      // ESLint will consider all files inside script/ and ending with .cjs as written for Node.js
-      files: ["script/**/*.js", "**/*.cjs"],
-      env: {
-        es6: true,
-        browser: false,
+})
+
+// but consider files inside script/ as written for Node.js
+eslintConfig.overrides.push({
+  files: ["script/**/*.js"],
+  env: {
+    es6: true,
+    browser: false,
+    node: true,
+  },
+  settings: {
+    "import/resolver": {
+      [importResolverPath]: {
         node: true,
       },
-      settings: {
-        "import/resolver": {
-          [importResolverPath]: {
-            node: true,
-          },
-        },
+    },
+  },
+})
+
+// and any file ending with .cjs as written for Node.js with commonjs module resolution
+eslintConfig.overrides.push({
+  files: ["**/*.cjs"],
+  env: {
+    es6: true,
+    browser: false,
+    node: true,
+  },
+  settings: {
+    "import/resolver": {
+      [importResolverPath]: {
+        node: true,
+        commonJsModuleResolution: true,
       },
     },
-  ],
-}
+  },
+})
+
+module.exports = eslintConfig
 ```

@@ -1,6 +1,6 @@
 {
   "name": "@jsenv/importmap-eslint-resolver",
-  "version": "3.0.1",
+  "version": "4.0.0",
   "description": "importmap resolution for eslint.",
   "license": "MIT",
   "repository": {

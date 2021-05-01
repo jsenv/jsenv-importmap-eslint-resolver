@@ -5,12 +5,11 @@ import * as resolver from "@jsenv/importmap-eslint-resolver"
 const projectDirectoryUrl = resolveUrl("./root/", import.meta.url)
 const mainFileUrl = resolveUrl("main.js", projectDirectoryUrl)
 
-// #env not found when disableNodeModuleResolution enabled
+// #env not found by default
 {
   const actual = resolver.resolve("#env", urlToFileSystemPath(mainFileUrl), {
     projectDirectoryUrl,
     node: true,
-    disableNodeModuleResolution: true,
   })
   const expected = {
     found: false,
@@ -19,12 +18,13 @@ const mainFileUrl = resolveUrl("main.js", projectDirectoryUrl)
   assert({ actual, expected })
 }
 
-// #env found otherwise
+// #env found when commonJsModuleResolution is enabled
 {
-  const envFileUrl = resolveUrl("env.js", projectDirectoryUrl)
+  const envFileUrl = resolveUrl("env.cjs", projectDirectoryUrl)
   const actual = resolver.resolve("#env", urlToFileSystemPath(mainFileUrl), {
     projectDirectoryUrl,
     node: true,
+    commonJsModuleResolution: true,
   })
   const expected = {
     found: true,
