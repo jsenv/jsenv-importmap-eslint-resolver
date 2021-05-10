@@ -1,6 +1,6 @@
 {
   "name": "@jsenv/importmap-eslint-resolver",
-  "version": "4.0.0",
+  "version": "5.0.0",
   "description": "importmap resolution for eslint.",
   "license": "MIT",
   "repository": {
@@ -17,26 +17,26 @@
   "exports": {
     ".": {
       "import": "./main.js",
-      "require": "./dist/commonjs/main.cjs"
+      "require": "./dist/commonjs/importmap_eslint_resolver.cjs"
     }
   },
-  "main": "dist/commonjs/main.cjs",
+  "main": "dist/commonjs/importmap_eslint_resolver.cjs",
   "files": [
     "/dist/",
     "/src/",
-    "/index.js"
+    "/main.js"
   ],
   "scripts": {
+    "eslint-check": "node ./node_modules/eslint/bin/eslint.js .",
     "test": "node ./script/test/test.js",
     "test-with-coverage": "node ./script/test/test.js --coverage",
-    "eslint-check": "node ./node_modules/eslint/bin/eslint.js .",
     "prettier-format": "node ./script/prettier-format/prettier-format.js",
     "prettier-format-stage": "npm run prettier-format -- --staged",
     "prettier-check": "npm run prettier-format -- --dry-run",
     "upload-coverage": "node ./script/upload-coverage/upload-coverage.js",
-    "generate-commonjs-build": "node ./script/generate-commonjs-build/generate-commonjs-build.js",
+    "build": "node --experimental-import-meta-resolve ./script/build/build.js",
     "generate-import-map": "node ./script/generate-import-map/generate-import-map.js",
-    "dist": "npm run generate-commonjs-build",
+    "dist": "npm run build",
     "postinstall": "npm run generate-import-map",
     "prepublishOnly": "node ./script/transform-package/remove-postinstall.js && npm run dist",
     "postpublish": "node ./script/transform-package/restore-postinstall.js"
@@ -44,18 +44,18 @@
   "dependencies": {
     "@jsenv/import-map": "6.13.2",
     "@jsenv/logger": "4.0.0",
-    "@jsenv/util": "4.0.6"
+    "@jsenv/util": "4.1.0"
   },
   "devDependencies": {
     "@jsenv/assert": "2.2.5",
     "@jsenv/codecov-upload": "3.4.3",
-    "@jsenv/core": "17.10.0",
-    "@jsenv/eslint-config": "12.9.1",
+    "@jsenv/core": "18.0.1",
+    "@jsenv/eslint-config": "14.0.0",
     "@jsenv/github-release-package": "1.2.2",
     "@jsenv/node-module-import-map": "13.4.1",
     "@jsenv/package-publish": "1.5.2",
     "@jsenv/prettier-check-project": "5.6.1",
-    "eslint": "7.25.0",
-    "prettier": "2.2.1"
+    "eslint": "7.26.0",
+    "prettier": "2.3.0"
   }
 }

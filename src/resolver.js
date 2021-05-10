@@ -3,8 +3,8 @@
 // https://github.com/olalonde/eslint-import-resolver-babel-root-import
 
 import { statSync, realpathSync } from "fs"
+
 import { createLogger } from "@jsenv/logger"
-import { isSpecifierForNodeCoreModule } from "@jsenv/import-map/src/isSpecifierForNodeCoreModule.js"
 import {
   assertAndNormalizeDirectoryUrl,
   ensureWindowsDriveLetter,
@@ -12,8 +12,9 @@ import {
   urlToFileSystemPath,
   fileSystemPathToUrl,
 } from "@jsenv/util"
+import { isSpecifierForNodeCoreModule } from "@jsenv/import-map/src/isSpecifierForNodeCoreModule.js"
+
 import { applyImportMapResolution } from "./internal/resolution-import-map.js"
-import { applyCommonJsModuleResolution } from "./internal/resolution-node-commonjs.js"
 
 export const interfaceVersion = 2
 
@@ -26,9 +27,8 @@ export const resolve = (
     importMapFileRelativeUrl,
     caseSensitive = true,
     ignoreOutside = false,
-    defaultExtension = false,
+    importDefaultExtension = false,
     node = false,
-    commonJsModuleResolution = false,
   },
 ) => {
   projectDirectoryUrl = assertAndNormalizeDirectoryUrl(projectDirectoryUrl)
@@ -56,14 +56,12 @@ ${urlToFileSystemPath(projectDirectoryUrl)}`)
   const importer = String(fileSystemPathToUrl(file))
 
   try {
-    let importUrl = applyImportResolution(specifier, {
+    let importUrl = applyImportMapResolution(specifier, {
       logger,
       projectDirectoryUrl,
       importMapFileRelativeUrl,
+      importDefaultExtension,
       importer,
-      defaultExtension,
-      node,
-      commonJsModuleResolution,
     })
     if (!importUrl) {
       return {
@@ -97,41 +95,6 @@ ${urlToFileSystemPath(projectDirectoryUrl)}`)
       path: null,
     }
   }
-}
-
-const applyImportResolution = (
-  specifier,
-  {
-    logger,
-    projectDirectoryUrl,
-    importMapFileRelativeUrl,
-    importer,
-    defaultExtension,
-    node,
-    commonJsModuleResolution,
-  },
-) => {
-  const importResolutionResult = applyImportMapResolution(specifier, {
-    importer,
-    logger,
-    projectDirectoryUrl,
-    importMapFileRelativeUrl,
-    defaultExtension,
-  })
-
-  if (importResolutionResult) {
-    return importResolutionResult
-  }
-
-  if (node && commonJsModuleResolution) {
-    const nodeModuleResolutionResult = applyCommonJsModuleResolution(specifier, {
-      importer,
-      logger,
-    })
-    return nodeModuleResolutionResult
-  }
-
-  return null
 }
 
 const handleFileUrl = (

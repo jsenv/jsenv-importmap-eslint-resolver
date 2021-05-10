@@ -11,9 +11,9 @@ Import maps resolution for ESLint.
 
 - [Presentation](#Presentation)
 - [Installation](#installation)
-- [About resolution](#About-resolution)
 - [Configuration](#Configuration)
 - [Advanced configuration example](#Advanced-configuration-example)
+- [About](#About)
 
 # Presentation
 
@@ -84,7 +84,7 @@ module.exports = {
   plugins: ["import"],
   settings: {
     "import/resolver": {
-      [require.resolve("@jsenv/importmap-eslint-resolver")]: {
+      "@jsenv/importmap-eslint-resolver": {
         projectDirectoryUrl: __dirname,
         importMapFileRelativeUrl: "./project.importmap",
       },
@@ -95,7 +95,7 @@ module.exports = {
 
 </details>
 
-# About resolution
+# Configuration
 
 **By default** the resolution is:
 
@@ -106,6 +106,156 @@ module.exports = {
   - do not understand path without extension (does not try to auto add extension)
 
 This resolution **default** behaviour is documented in this section and **can be configured to your convenience**.
+
+<details>
+  <summary>importMapFileRelativeUrl parameter</summary>
+
+`importMapFileRelativeUrl` parameter is a string leading to an importmap file. This parameter is optional and `undefined` by default.
+
+```js
+module.exports = {
+  plugins: ["import"],
+  settings: {
+    "import/resolver": {
+      "@jsenv/importmap-eslint-resolver": {
+        projectDirectoryUrl: __dirname,
+        importMapFileRelativeUrl: "./project.importmap",
+      },
+    },
+  },
+}
+```
+
+</details>
+
+<details>
+  <summary>caseSensitive parameter</summary>
+
+`caseSensitive` parameter is a boolean indicating if the file path will be case sensitive. This parameter is optional and enabled by default. See [Case sensitivity](#Case-sensitivity).
+
+```js
+module.exports = {
+  plugins: ["import"],
+  settings: {
+    "import/resolver": {
+      "@jsenv/importmap-eslint-resolver": {
+        projectDirectoryUrl: __dirname,
+        importMapFileRelativeUrl: "./project.importmap",
+        caseSensitive: false,
+      },
+    },
+  },
+}
+```
+
+</details>
+
+<details>
+  <summary>importDefaultExtension parameter</summary>
+
+`importDefaultExtension` parameter is a boolean indicating if a default extension will be automatically added to import without file extension. This parameter is optional and disabled by default. See [Extensionless import](#Extensionless-import)
+
+When enabled the following import
+
+```js
+import { value } from "./file"
+```
+
+Will search for a file with an extension. The extension is "inherited" from the file where the import is written:
+
+If written in `whatever.js`, searches at `file.js`.<br />
+If written in `whatever.ts`, searches at `file.ts`.
+
+</details>
+
+<details>
+  <summary>node parameter</summary>
+
+`node` parameter is a boolean indicating if the file are written for Node.js. This parameter is optional and disabled by default. See [Node module resolution](#Node-module-resolution)
+
+When enabled node core modules (path, fs, url, etc) will be considered as found.
+
+```js
+module.exports = {
+  plugins: ["import"],
+  settings: {
+    "import/resolver": {
+      "@jsenv/importmap-eslint-resolver": {
+        projectDirectoryUrl: __dirname,
+        node: true,
+      },
+    },
+  },
+}
+```
+
+</details>
+
+# Advanced configuration example
+
+In a project mixing files written for the browser AND for Node.js you should tell ESLint which are which. This is possible thanks to `overrides` documented on ESLint in [Configuration Based on Glob Patterns](https://eslint.org/docs/user-guide/configuring/configuration-files#configuration-based-on-glob-patterns).
+
+`.eslintrc.cjs`
+
+```js
+const eslintConfig = {
+  plugins: ["import"],
+  overrides: [],
+}
+
+// by default consider files as written for browsers
+Object.assign(eslintConfig, {
+  env: {
+    es6: true,
+    browser: true,
+    node: false,
+  },
+  settings: {
+    "import/resolver": {
+      "@jsenv/importmap-eslint-resolver": {
+        projectDirectoryUrl: __dirname,
+        importMapFileRelativeUrl: "./project.importmap",
+      },
+    },
+  },
+})
+
+// but consider files inside script/ as written for Node.js
+eslintConfig.overrides.push({
+  files: ["script/**/*.js"],
+  env: {
+    es6: true,
+    browser: false,
+    node: true,
+  },
+  settings: {
+    "import/resolver": {
+      "@jsenv/importmap-eslint-resolver": {
+        node: true,
+      },
+    },
+  },
+})
+
+// and any file ending with .cjs as written for Node.js with commonjs module resolution
+eslintConfig.overrides.push({
+  files: ["**/*.cjs"],
+  env: {
+    es6: true,
+    browser: false,
+    node: true,
+  },
+  settings: {
+    "import/resolver": {
+      node: true,
+    },
+  },
+})
+
+module.exports = eslintConfig
+```
+
+# About
 
 ## Case sensitivity
 
@@ -141,7 +291,7 @@ The importmap file must contain all the mappings corresponding to the [node esm 
 
 ### Node commonjs resolution
 
-If the importmap file does not already contain mapping, resolver can fallback to [node commonjs resolution algorithm](https://nodejs.org/dist/latest-v16.x/docs/api/modules.html#modules_all_together). You can enable this using [commonJsModuleResolution parameter](#Configuration).
+Configure the resolver to use node as in [Advanced configuration example](#Advanced-configuration-example)
 
 ## Extensionless import
 
@@ -180,166 +330,3 @@ And every bare specifier must have a mapping or it cannot be resolved.
 To fix this either add a mapping or put explicitely `"./specifier.js"`.
 
 Please note that `"specifier.js"` is also a bare specifier. You should write `"./specifier.js"` instead.
-
-# Configuration
-
-<details>
-  <summary>importMapFileRelativeUrl parameter</summary>
-
-`importMapFileRelativeUrl` parameter is a string leading to an importmap file. This parameter is optional and `undefined` by default.
-
-```js
-module.exports = {
-  plugins: ["import"],
-  settings: {
-    "import/resolver": {
-      [require.resolve("@jsenv/importmap-eslint-resolver")]: {
-        projectDirectoryUrl: __dirname,
-        importMapFileRelativeUrl: "./project.importmap",
-      },
-    },
-  },
-}
-```
-
-</details>
-
-<details>
-  <summary>caseSensitive parameter</summary>
-
-`caseSensitive` parameter is a boolean indicating if the file path will be case sensitive. This parameter is optional and enabled by default. See [Case sensitivity](#Case-sensitivity).
-
-```js
-module.exports = {
-  plugins: ["import"],
-  settings: {
-    "import/resolver": {
-      [require.resolve("@jsenv/importmap-eslint-resolver")]: {
-        projectDirectoryUrl: __dirname,
-        importMapFileRelativeUrl: "./project.importmap",
-        caseSensitive: false,
-      },
-    },
-  },
-}
-```
-
-</details>
-
-<details>
-  <summary>defaultExtension parameter</summary>
-
-`defaultExtension` parameter is a boolean indicating if a default extension will be automatically added to import without file extension. This parameter is optional and disabled by default. See [Extensionless import](#Extensionless-import)
-
-When enabled the following import
-
-```js
-import { value } from "./file"
-```
-
-Will search for a file with an extension. The extension is "inherited" from the file where the import is written:
-
-If written in `whatever.js`, searches at `file.js`.<br />
-If written in `whatever.ts`, searches at `file.ts`.
-
-</details>
-
-<details>
-  <summary>node parameter</summary>
-
-`node` parameter is a boolean indicating if the file are written for Node.js. This parameter is optional and disabled by default. See [Node module resolution](#Node-module-resolution)
-
-When enabled node core modules (path, fs, url, etc) will be considered as found.
-
-```js
-module.exports = {
-  plugins: ["import"],
-  settings: {
-    "import/resolver": {
-      [require.resolve("@jsenv/importmap-eslint-resolver")]: {
-        projectDirectoryUrl: __dirname,
-        node: true,
-      },
-    },
-  },
-}
-```
-
-</details>
-
-<details>
-  <summary>commonJsModuleResolution parameter</summary>
-
-`commonJsModuleResolution` parameter is a boolean controlling if the resolver will fallback to [node commonjs resolution algorithm](https://nodejs.org/dist/latest-v16.x/docs/api/modules.html#modules_all_together). This parameter is optional and disabled by default.
-
-Check [Advanced configuratione example](#Advanced-configuration-example) to see how it is meant to be used.
-
-</details>
-
-# Advanced configuration example
-
-In a project mixing files written for the browser AND for Node.js you should tell ESLint which are which. This is possible thanks to `overrides` documented on ESLint in [Configuration Based on Glob Patterns](https://eslint.org/docs/user-guide/configuring/configuration-files#configuration-based-on-glob-patterns).
-
-`.eslintrc.cjs`
-
-```js
-const eslintConfig = {
-  plugins: ["import"],
-  overrides: [],
-}
-const importResolverPath = require.resolve("@jsenv/importmap-eslint-resolver")
-
-// by default consider files as written for browsers
-Object.assign(eslintConfig, {
-  env: {
-    es6: true,
-    browser: true,
-    node: false,
-  },
-  settings: {
-    "import/resolver": {
-      [importResolverPath]: {
-        projectDirectoryUrl: __dirname,
-        importMapFileRelativeUrl: "./project.importmap",
-      },
-    },
-  },
-})
-
-// but consider files inside script/ as written for Node.js
-eslintConfig.overrides.push({
-  files: ["script/**/*.js"],
-  env: {
-    es6: true,
-    browser: false,
-    node: true,
-  },
-  settings: {
-    "import/resolver": {
-      [importResolverPath]: {
-        node: true,
-      },
-    },
-  },
-})
-
-// and any file ending with .cjs as written for Node.js with commonjs module resolution
-eslintConfig.overrides.push({
-  files: ["**/*.cjs"],
-  env: {
-    es6: true,
-    browser: false,
-    node: true,
-  },
-  settings: {
-    "import/resolver": {
-      [importResolverPath]: {
-        node: true,
-        commonJsModuleResolution: true,
-      },
-    },
-  },
-})
-
-module.exports = eslintConfig
-```

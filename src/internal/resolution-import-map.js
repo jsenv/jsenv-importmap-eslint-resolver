@@ -3,9 +3,10 @@ import { readImportMapFromFile } from "./readImportMapFromFile.js"
 
 export const applyImportMapResolution = (
   specifier,
-  { importer, logger, projectDirectoryUrl, importMapFileRelativeUrl, defaultExtension },
+  { logger, projectDirectoryUrl, importMapFileRelativeUrl, importDefaultExtension, importer },
 ) => {
   const importMap = readImportMapFromFile({
+    logger,
     projectDirectoryUrl,
     importMapFileRelativeUrl,
   })
@@ -14,8 +15,13 @@ export const applyImportMapResolution = (
     return resolveImport({
       specifier,
       importer,
-      importMap,
-      defaultExtension,
+      // by passing importMap to null resolveImport behaves
+      // almost like new URL(specifier, importer)
+      // we want to force the importmap resolution
+      // so that bare specifiers are considered unhandled
+      // even if there is no importmap file
+      importMap: importMap || {},
+      defaultExtension: importDefaultExtension,
     })
   } catch (e) {
     if (e.message.includes("bare specifier")) {
