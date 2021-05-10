@@ -3,9 +3,10 @@ import { readImportMapFromFile } from "./readImportMapFromFile.js"
 
 export const applyImportMapResolution = (
   specifier,
-  { importer, logger, projectDirectoryUrl, importMapFileRelativeUrl, defaultExtension },
+  { logger, projectDirectoryUrl, importMapFileRelativeUrl, importDefaultExtension, importer },
 ) => {
   const importMap = readImportMapFromFile({
+    logger,
     projectDirectoryUrl,
     importMapFileRelativeUrl,
   })
@@ -15,7 +16,7 @@ export const applyImportMapResolution = (
       specifier,
       importer,
       importMap,
-      defaultExtension,
+      defaultExtension: importDefaultExtension,
     })
   } catch (e) {
     if (e.message.includes("bare specifier")) {

@@ -3,6 +3,10 @@ import * as jsenvConfig from "../../jsenv.config.js"
 
 buildProject({
   ...jsenvConfig,
+  buildDirectoryRelativeUrl: "./dist/commonjs/",
+  entryPointMap: {
+    "./main.js": "./importmap_eslint_resolver.cjs",
+  },
   format: "commonjs",
   babelPluginMap: getBabelPluginMapForNode(),
   buildDirectoryClean: true,

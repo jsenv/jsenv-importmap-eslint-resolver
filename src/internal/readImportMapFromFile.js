@@ -7,9 +7,13 @@ import {
   ensureWindowsDriveLetter,
 } from "@jsenv/util"
 
-export const readImportMapFromFile = ({ projectDirectoryUrl, importMapFileRelativeUrl }) => {
+export const readImportMapFromFile = ({
+  logger,
+  projectDirectoryUrl,
+  importMapFileRelativeUrl,
+}) => {
   if (typeof importMapFileRelativeUrl === "undefined") {
-    return {}
+    return null
   }
 
   if (typeof importMapFileRelativeUrl !== "string") {
@@ -20,7 +24,7 @@ export const readImportMapFromFile = ({ projectDirectoryUrl, importMapFileRelati
   const importMapFileUrl = applyUrlResolution(importMapFileRelativeUrl, projectDirectoryUrl)
 
   if (!urlIsInsideOf(importMapFileUrl, projectDirectoryUrl)) {
-    console.warn(`import map file is outside project.
+    logger.warn(`import map file is outside project.
 --- import map file ---
 ${urlToFileSystemPath(importMapFileUrl)}
 --- project directory ---
@@ -28,12 +32,13 @@ ${urlToFileSystemPath(projectDirectoryUrl)}`)
   }
 
   let importMapFileBuffer
+  const importMapFilePath = urlToFileSystemPath(importMapFileUrl)
   try {
-    const importMapFilePath = urlToFileSystemPath(importMapFileUrl)
     importMapFileBuffer = readFileSync(importMapFilePath)
   } catch (e) {
     if (e && e.code === "ENOENT") {
-      return {}
+      logger.error(`importmap file not found at ${importMapFilePath}`)
+      return null
     }
     throw e
   }
@@ -44,8 +49,12 @@ ${urlToFileSystemPath(projectDirectoryUrl)}`)
     importMap = JSON.parse(importMapFileString)
   } catch (e) {
     if (e && e.code === "SyntaxError") {
-      console.error(e.stack)
-      return {}
+      logger.error(`syntax error in importmap file
+--- error stack ---
+${e.stack}
+--- importmap file ---
+${importMapFilePath}`)
+      return null
     }
     throw e
   }

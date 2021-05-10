@@ -1,6 +1,0 @@
-{
-  "name": "root",
-  "imports": {
-    "#env": "./env.cjs"
-  }
-}
